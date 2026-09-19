@@ -33,8 +33,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [usersList, setUsersList] = useState<User[]>([
     {
       id: 'user-admin-1',
-      name: 'Alexander Vance',
-      email: 'admin@trendscope.ai',
+      name: 'Aarav Sharma',
+      email: 'aarav.sharma@trendscope.ai',
       role: 'admin',
       status: 'active',
       createdAt: '2026-08-10',
@@ -42,8 +42,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
     },
     {
       id: 'user-analyst-2',
-      name: 'Dr. Sarah Chen',
-      email: 'sarah.chen@healthanalytics.org',
+      name: 'Dr. Priya Nair',
+      email: 'priya.nair@healthanalytics.in',
       role: 'analyst',
       status: 'active',
       createdAt: '2026-08-14',
@@ -51,8 +51,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
     },
     {
       id: 'user-demo-3',
-      name: 'Jordan Lee',
-      email: 'jordan@enterprise.io',
+      name: 'Rohan Patel',
+      email: 'rohan.patel@enterprise.in',
       role: 'user',
       status: 'active',
       createdAt: '2026-09-01',
@@ -60,8 +60,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
     },
     {
       id: 'user-demo-4',
-      name: 'Elena Rostova',
-      email: 'elena@enterprise.io',
+      name: 'Kavita Sundaram',
+      email: 'kavita.sundaram@enterprise.in',
       role: 'analyst',
       status: 'active',
       createdAt: '2026-09-12',

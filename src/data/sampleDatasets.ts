@@ -10,7 +10,7 @@ export const SAMPLE_DATASETS: Dataset[] = [
     columnCount: 8,
     tags: ['Education', 'Attendance', 'Grades', 'Exam Prep'],
     uploadedAt: '2026-09-15 08:30 AM',
-    uploadedBy: 'Prof. Anderson (Admin)',
+    uploadedBy: 'Prof. Rajesh Verma (Academic Head)',
     columns: [
       { name: 'Week', type: 'categorical', distinctCount: 12, nullCount: 0, sampleValues: ['Week 1', 'Week 2', 'Week 3'] },
       { name: 'Subject', type: 'categorical', distinctCount: 4, nullCount: 0, sampleValues: ['Mathematics', 'Science', 'English', 'Computer Science'] },
@@ -57,7 +57,7 @@ export const SAMPLE_DATASETS: Dataset[] = [
     columnCount: 7,
     tags: ['Healthcare', 'Clinical', 'Epidemic', 'Hospital Bed Occupancy'],
     uploadedAt: '2026-09-17 11:15 AM',
-    uploadedBy: 'Dr. Sarah Chen (Analyst)',
+    uploadedBy: 'Dr. Priya Nair (Healthcare Analyst)',
     columns: [
       { name: 'Date_Period', type: 'categorical', distinctCount: 10, nullCount: 0, sampleValues: ['Sep 01-07', 'Sep 08-14', 'Sep 15-21'] },
       { name: 'Disease_Category', type: 'categorical', distinctCount: 4, nullCount: 0, sampleValues: ['Influenza & Respiratory', 'Cardiovascular', 'Gastrointestinal', 'Trauma & Orthopedic'] },
@@ -99,7 +99,7 @@ export const SAMPLE_DATASETS: Dataset[] = [
     columnCount: 8,
     tags: ['Sales', 'Finance', 'E-Commerce', 'Profitability'],
     uploadedAt: '2026-09-18 02:40 PM',
-    uploadedBy: 'Elena Rostova (Executive)',
+    uploadedBy: 'Kavita Sundaram (Chief Commercial Officer)',
     columns: [
       { name: 'Month', type: 'categorical', distinctCount: 12, nullCount: 0, sampleValues: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] },
       { name: 'Product_Line', type: 'categorical', distinctCount: 3, nullCount: 0, sampleValues: ['Enterprise Hardware', 'Cloud Software', 'Consulting Services'] },
@@ -142,7 +142,7 @@ export const SAMPLE_DATASETS: Dataset[] = [
     columnCount: 6,
     tags: ['SaaS', 'MRR', 'Subscription', 'Churn'],
     uploadedAt: '2026-09-18 09:00 AM',
-    uploadedBy: 'Marcus Sterling (Admin)',
+    uploadedBy: 'Aditya Mukherjee (VP Product & Strategy)',
     columns: [
       { name: 'Billing_Month', type: 'categorical', distinctCount: 12, nullCount: 0, sampleValues: ['Oct 2025', 'Nov 2025', 'Dec 2025'] },
       { name: 'Monthly_Recurring_Rev_K', type: 'numeric', distinctCount: 12, nullCount: 0, sampleValues: [115, 128, 142], min: 105, max: 210, mean: 152 },

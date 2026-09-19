@@ -21,8 +21,8 @@ export default function App() {
   // Pre-seed authenticated user so preview is immediately functional and alive
   const [currentUser, setCurrentUser] = useState<User | null>({
     id: 'user-admin-1',
-    name: 'Alexander Vance',
-    email: 'admin@trendscope.ai',
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@trendscope.ai',
     role: 'admin',
     status: 'active',
     createdAt: '2026-08-10',
