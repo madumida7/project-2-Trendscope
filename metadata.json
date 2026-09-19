@@ -1,0 +1,6 @@
+{
+  "name": "TrendScope – Data Visualization & Prediction Platform",
+  "description": "An intelligent, modern analytics platform featuring automated dataset profiling, interactive visualizations, and human-understandable predictive storytelling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
