@@ -27,8 +27,8 @@ interface StoredUser {
 const users: StoredUser[] = [
   {
     id: 'user-admin-1',
-    name: 'Alexander Vance',
-    email: 'admin@trendscope.ai',
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@trendscope.ai',
     role: 'admin',
     status: 'active',
     createdAt: '2026-08-10',
@@ -36,8 +36,8 @@ const users: StoredUser[] = [
   },
   {
     id: 'user-analyst-2',
-    name: 'Dr. Sarah Chen',
-    email: 'sarah.chen@healthanalytics.org',
+    name: 'Dr. Priya Nair',
+    email: 'priya.nair@healthanalytics.in',
     role: 'analyst',
     status: 'active',
     createdAt: '2026-08-14',
@@ -45,8 +45,8 @@ const users: StoredUser[] = [
   },
   {
     id: 'user-demo-3',
-    name: 'Jordan Lee',
-    email: 'jordan@enterprise.io',
+    name: 'Rohan Patel',
+    email: 'rohan.patel@enterprise.in',
     role: 'user',
     status: 'active',
     createdAt: '2026-09-01',
@@ -55,9 +55,9 @@ const users: StoredUser[] = [
 ];
 
 let activityLogs = [
-  { id: 'act-1', action: 'Prediction Model Run', timestamp: '10 mins ago', user: 'Alexander Vance', details: 'Computed 3-period moving average on Respiratory Surge Dataset', iconType: 'prediction' },
-  { id: 'act-2', action: 'Dataset Uploaded', timestamp: '42 mins ago', user: 'Dr. Sarah Chen', details: 'Imported 24 records: Student Academic & Attendance Performance', iconType: 'upload' },
-  { id: 'act-3', action: 'Visual Dashboard Created', timestamp: '2 hours ago', user: 'Jordan Lee', details: 'Configured Multi-axis Revenue & Margin Area Chart', iconType: 'chart' },
+  { id: 'act-1', action: 'Prediction Model Run', timestamp: '10 mins ago', user: 'Aarav Sharma', details: 'Computed 3-period moving average on Respiratory Surge Dataset', iconType: 'prediction' },
+  { id: 'act-2', action: 'Dataset Uploaded', timestamp: '42 mins ago', user: 'Dr. Priya Nair', details: 'Imported 24 records: Student Academic & Attendance Performance', iconType: 'upload' },
+  { id: 'act-3', action: 'Visual Dashboard Created', timestamp: '2 hours ago', user: 'Rohan Patel', details: 'Configured Multi-axis Revenue & Margin Area Chart', iconType: 'chart' },
   { id: 'act-4', action: 'System Health Check', timestamp: '4 hours ago', user: 'System Service', details: 'All analytical pipelines operating at 99.98% reliability', iconType: 'admin' },
 ];
 
