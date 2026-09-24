@@ -92,17 +92,17 @@ export function initDatabase() {
 
     // Seed initial users
     alasql(`INSERT INTO users VALUES 
-      ('user-admin-1', 'Aarav Sharma', 'aarav.sharma@trendscope.ai', 'admin', 'active', '2026-08-10', 'Just now'),
-      ('user-analyst-2', 'Dr. Priya Nair', 'priya.nair@healthanalytics.in', 'analyst', 'active', '2026-08-14', '2 hours ago'),
-      ('user-demo-3', 'Rohan Patel', 'rohan.patel@enterprise.in', 'user', 'active', '2026-09-01', 'Yesterday')
+      ('user-admin-1', 'M. Janani', 'janani.m@trendscope.ai', 'admin', 'active', '2026-08-10', 'Just now'),
+      ('user-analyst-2', 'D. Madhumitha', 'madhumitha.d@trendscope.ai', 'analyst', 'active', '2026-08-14', '2 hours ago'),
+      ('user-demo-3', 'G. Nandhini', 'nandhini.g@trendscope.ai', 'analyst', 'active', '2026-09-01', 'Yesterday')
     ;`);
 
     // Seed initial datasets
     alasql(`INSERT INTO datasets VALUES 
-      ('dataset-student-perf', 'Student Academic & Attendance Performance', 'student', 24, 8, 'Weekly student subject evaluation scores, study hours, and attendance rates.', 'Prof. Rajesh Verma (Academic Head)', '2026-09-15 08:30 AM'),
-      ('dataset-hospital-surge', 'Pediatric Respiratory ER Patient Admissions', 'hospital', 18, 7, 'Winter respiratory surge admissions, ICU occupancy, and bed capacity data.', 'Dr. Ananya Iyer (Medical Director)', '2026-09-16 11:20 AM'),
-      ('dataset-saas-mrr', 'B2B Enterprise SaaS MRR & Net Retention', 'saas', 16, 7, 'Monthly recurring revenue, churn dynamics, customer acquisition, and net retention.', 'Aarav Sharma (VP Analytics)', '2026-09-17 02:45 PM'),
-      ('dataset-retail-sales', 'Omnichannel Retail Sales & Margin Velocity', 'business', 20, 7, 'Multi-region revenue velocity, promotional margins, and seasonal demand metrics.', 'Rohan Patel (Operations Lead)', '2026-09-18 09:15 AM')
+      ('dataset-student-perf', 'Student Academic & Attendance Performance', 'student', 24, 8, 'Weekly student subject evaluation scores, study hours, and attendance rates.', 'M. Janani (Team Lead)', '2026-09-15 08:30 AM'),
+      ('dataset-hospital-surge', 'Pediatric Respiratory ER Patient Admissions', 'hospital', 18, 7, 'Winter respiratory surge admissions, ICU occupancy, and bed capacity data.', 'D. Madhumitha (Data Analyst)', '2026-09-16 11:20 AM'),
+      ('dataset-saas-mrr', 'B2B Enterprise SaaS MRR & Net Retention', 'saas', 16, 7, 'Monthly recurring revenue, churn dynamics, customer acquisition, and net retention.', 'G. Nandhini (UI/UX Lead)', '2026-09-17 02:45 PM'),
+      ('dataset-retail-sales', 'Omnichannel Retail Sales & Margin Velocity', 'business', 20, 7, 'Multi-region revenue velocity, promotional margins, and seasonal demand metrics.', 'M. Janani (Team Lead)', '2026-09-18 09:15 AM')
     ;`);
 
     // Seed initial predictions
@@ -115,9 +115,9 @@ export function initDatabase() {
 
     // Seed initial activity logs
     alasql(`INSERT INTO activity_logs VALUES 
-      ('act-1', 'Aarav Sharma', 'Prediction Model Run', 'Computed 3-period moving average on Respiratory Surge Dataset', 'success', '10 mins ago'),
-      ('act-2', 'Dr. Priya Nair', 'Dataset Ingested', 'Imported 24 records: Student Academic & Attendance Performance', 'success', '42 mins ago'),
-      ('act-3', 'Rohan Patel', 'Visual Dashboard Created', 'Configured Multi-axis Revenue & Margin Area Chart', 'success', '2 hours ago'),
+      ('act-1', 'M. Janani', 'Prediction Model Run', 'Computed 3-period moving average on Respiratory Surge Dataset', 'success', '10 mins ago'),
+      ('act-2', 'D. Madhumitha', 'Dataset Ingested', 'Imported 24 records: Student Academic & Attendance Performance', 'success', '42 mins ago'),
+      ('act-3', 'G. Nandhini', 'Visual Dashboard Created', 'Configured Multi-axis Revenue & Margin Area Chart', 'success', '2 hours ago'),
       ('act-4', 'System Service', 'System Health Check', 'All analytical pipelines operating at 99.98% reliability', 'success', '4 hours ago')
     ;`);
 

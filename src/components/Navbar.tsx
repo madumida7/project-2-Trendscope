@@ -51,6 +51,30 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showPaletteMenu, setShowPaletteMenu] = useState(false);
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
+
+  const handleDownloadDocx = async () => {
+    try {
+      setDownloadingDocx(true);
+      const res = await fetch('/TrendScope_Project_Report.docx');
+      if (!res.ok) throw new Error('File not found');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'TrendScope_Project_Report.docx';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 500);
+    } catch (err) {
+      window.open('/TrendScope_Project_Report.docx', '_blank');
+    } finally {
+      setDownloadingDocx(false);
+    }
+  };
 
   const activePalette = getPalette(themePalette);
 
@@ -194,11 +218,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Direct Download Academic Report (.DOCX) */}
-          <a
+          <button
             id="nav-doc-report-link"
-            href="/TrendScope_Project_Report.docx"
-            download="TrendScope_Project_Report.docx"
-            className={`hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer no-underline ${
+            onClick={handleDownloadDocx}
+            disabled={downloadingDocx}
+            className={`hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
               darkMode
                 ? 'bg-blue-950/40 border-blue-800/60 hover:bg-blue-900/50 text-blue-300'
                 : 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
@@ -206,8 +230,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Download Complete 15-17 Page Academic Project Report in Microsoft Word (.DOCX)"
           >
             <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span>Word Report (.DOCX)</span>
-          </a>
+            <span>{downloadingDocx ? 'Downloading...' : 'Word Report (.DOCX)'}</span>
+          </button>
 
           {/* Palette Customizer Menu Button */}
           <div className="relative">

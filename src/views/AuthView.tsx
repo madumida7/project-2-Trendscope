@@ -77,8 +77,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
       // Fallback quick login if server unreachable
       const fallbackUser = {
         id: `user-${Date.now()}`,
-        name: name || (email ? email.split('@')[0] : 'Aarav Sharma'),
-        email: email || 'aarav.sharma@trendscope.ai',
+        name: name || (email ? email.split('@')[0] : 'M. Janani'),
+        email: email || '25mca029@grd.edu.in',
         role: role || (email?.includes('admin') ? 'admin' : 'analyst'),
         status: 'active' as const,
         createdAt: '2026-09-19',
@@ -94,8 +94,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
     if (demoRole === 'admin') {
       onLoginSuccess({
         id: 'user-admin-1',
-        name: 'Aarav Sharma',
-        email: 'aarav.sharma@trendscope.ai',
+        name: 'M. Janani',
+        email: '25mca029@grd.edu.in',
         role: 'admin',
         status: 'active',
         createdAt: '2026-08-10',
@@ -104,8 +104,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
     } else if (demoRole === 'analyst') {
       onLoginSuccess({
         id: 'user-analyst-2',
-        name: 'Dr. Priya Nair',
-        email: 'priya.nair@healthanalytics.in',
+        name: 'D. Madhumitha',
+        email: 'madhumitha.d@trendscope.ai',
         role: 'analyst',
         status: 'active',
         createdAt: '2026-08-14',
@@ -114,8 +114,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
     } else {
       onLoginSuccess({
         id: 'user-demo-3',
-        name: 'Rohan Patel',
-        email: 'rohan.patel@enterprise.in',
+        name: 'G. Nandhini',
+        email: 'nandhini.g@trendscope.ai',
         role: 'user',
         status: 'active',
         createdAt: '2026-09-01',
@@ -379,7 +379,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 }`}
               >
                 <div>
-                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Aarav Sharma</div>
+                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>M. Janani (Lead)</div>
                   <div className={`text-[10px] ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`}>Admin Role (Full)</div>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-indigo-500" />
@@ -396,7 +396,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 }`}
               >
                 <div>
-                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>Dr. Priya Nair</div>
+                  <div className={`font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>D. Madhumitha</div>
                   <div className={`text-[10px] ${darkMode ? 'text-emerald-300' : 'text-emerald-600'}`}>Data Analyst Role</div>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-emerald-500" />

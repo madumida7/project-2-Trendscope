@@ -32,6 +32,31 @@ export const ExecutiveReportModal: React.FC<ExecutiveReportModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
+
+  const handleDownloadDocx = async () => {
+    try {
+      setDownloadingDocx(true);
+      const res = await fetch('/TrendScope_Project_Report.docx');
+      if (!res.ok) throw new Error('File not found');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'TrendScope_Project_Report.docx';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      }, 500);
+    } catch (err) {
+      window.open('/TrendScope_Project_Report.docx', '_blank');
+    } finally {
+      setDownloadingDocx(false);
+    }
+  };
+
   const activePalette = getPalette(themePalette);
   const predictions = generatePredictions(dataset, 1.0);
   const insightCards = generateInsightCards(dataset);
@@ -60,15 +85,15 @@ export const ExecutiveReportModal: React.FC<ExecutiveReportModalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="/TrendScope_Project_Report.docx"
-              download="TrendScope_Project_Report.docx"
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all no-underline"
+            <button
+              onClick={handleDownloadDocx}
+              disabled={downloadingDocx}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all"
               title="Download 15-17 Page Academic Project Report (DOCX)"
             >
               <FileText className="w-4 h-4" />
-              <span>Project Report (.DOCX)</span>
-            </a>
+              <span>{downloadingDocx ? 'Downloading...' : 'Project Report (.DOCX)'}</span>
+            </button>
 
             <button
               id="print-report-btn"

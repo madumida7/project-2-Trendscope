@@ -307,23 +307,37 @@ export async function generateDocument() {
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 500, after: 100 },
+            spacing: { before: 400, after: 100 },
             children: [
-              new TextRun({ text: 'Submitted By:', bold: true, size: 22, color: '374151' }),
+              new TextRun({ text: 'Submitted By (MCA Group Project Team):', bold: true, size: 22, color: '374151' }),
             ],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 60 },
+            spacing: { after: 40 },
             children: [
-              new TextRun({ text: 'Candidate Register Number: 25MCA029', bold: true, size: 24, color: '111827' }),
+              new TextRun({ text: '1. M. JANANI  (Register No: 25MCA029)', bold: true, size: 22, color: '111827' }),
             ],
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { after: 400 },
+            spacing: { after: 40 },
             children: [
-              new TextRun({ text: 'Institutional Email: 25mca029@grd.edu.in', size: 22, color: '4B5563' }),
+              new TextRun({ text: '2. D. MADHUMITHA  (Register No: 25MCA018)', bold: true, size: 22, color: '111827' }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [
+              new TextRun({ text: '3. G. NANDHINI  (Register No: 25MCA035)', bold: true, size: 22, color: '111827' }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 },
+            children: [
+              new TextRun({ text: 'Department Contact Email: 25mca029@grd.edu.in', size: 20, color: '4B5563' }),
             ],
           }),
           new Paragraph({
@@ -568,7 +582,7 @@ export async function generateDocument() {
           createParagraph(
             'The user interface is designed with a responsive two-column layout: a collapsible left navigation sidebar paired with a dynamic content canvas and sticky top navigation bar. Key interface states include:'
           ),
-          createBullet('Navbar Header', 'Displays institutional branding, active dataset quick-switch selector, global search bar, dark/light toggle, theme palette selector, executive report trigger, and user profile badge (Aarav Sharma - ADMIN).'),
+          createBullet('Navbar Header', 'Displays institutional branding, active dataset quick-switch selector, global search bar, dark/light toggle, theme palette selector, executive report trigger, and user profile badge (M. Janani - Project Lead).'),
           createBullet('Sidebar Navigation', 'Six direct view triggers with active highlight indicators: Executive Dashboard, Upload & Profile, Interactive Charts, Prediction Stories, MySQL Studio, and Admin Hub.'),
           createBullet('Database Studio Split-Screen', 'Left pane houses the interactive SQL query console with syntax shortcuts; right pane provides live table schema definitions and tabulated result sets.'),
 
@@ -607,16 +621,15 @@ export async function generateDocument() {
 
           createHeading('4.3 Individual Contributions & Task Allocations', HeadingLevel.HEADING_2),
           createParagraph(
-            'For the MCA academic project submission (Register No: 25MCA029, Dr. G.R. Damodaran College of Science), responsibilities were structured across core engineering domains:'
+            'For the MCA group project submission at Dr. G.R. Damodaran College of Science, engineering and research responsibilities were divided collaboratively among the team members:'
           ),
           createCustomTable(
-            ['Engineering Domain', 'Assigned Lead / Personnel', 'Specific Responsibilities & Deliverables'],
+            ['Team Member & Register No.', 'Assigned Engineering Role', 'Specific Responsibilities & Deliverables'],
             [
-              ['Project Architecture & Full-Stack Integration', 'Aarav Sharma (25MCA029)', 'Unified server setup (server.ts), Vite build configuration, Git versioning, Render cloud deployment.'],
-              ['Predictive Modeling & Statistical Engine', 'Dr. Priya Nair (Analyst)', 'Formulated moving-average algorithms, rate-of-change formulas, confidence score calibration, narrative stories.'],
-              ['Database Engine & Web SQL Studio', 'Rohan Patel (Lead Developer)', 'Built AlaSQL relational schema, ANSI query parser, performance execution timer, and .sql dump generator.'],
-              ['Frontend UI/UX & Data Visualization', 'Kavita Sundaram (UI Designer)', 'Designed responsive Tailwind CSS layouts, Recharts SVG graphs, dark/light theme switcher, and report modal.'],
-              ['Quality Assurance, Testing & Documentation', 'Project Team (25MCA029)', 'Authored functional test cases, conducted browser compatibility audits, authored comprehensive technical report.'],
+              ['M. JANANI\n(Reg No: 25MCA029)', 'Team Lead & Predictive Modeling Architect', 'Unified full-stack architecture (server.ts), time-series moving average algorithms, rate-of-change velocity metrics, confidence score calculations, and cloud deployment on Render.'],
+              ['D. MADHUMITHA\n(Reg No: 25MCA018)', 'Relational Database Engineer', 'AlaSQL in-memory relational database design, ANSI SQL query parser, table schema design (users, datasets, predictions, logs), sub-millisecond execution timer, and .sql dump exporter.'],
+              ['G. NANDHINI\n(Reg No: 25MCA035)', 'Frontend UI/UX & Data Visualization Lead', 'Tailwind CSS v4 design system, interactive Recharts SVG graphs (Line, Bar, Area, Breakdown), dark/light theme switching, and Executive Report modal with print/PDF features.'],
+              ['Joint Group Contribution\n(All Members)', 'System Integration, Testing & Documentation', 'Cross-browser testing, dataset validation, academic documentation, viva presentation slides, and continuous integration testing.'],
             ],
             [25, 25, 50]
           ),
