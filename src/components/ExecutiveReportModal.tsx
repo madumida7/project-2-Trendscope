@@ -3,6 +3,7 @@ import {
   X, 
   Printer, 
   Download, 
+  FileText,
   Sparkles, 
   Award, 
   TrendingUp, 
@@ -59,6 +60,16 @@ export const ExecutiveReportModal: React.FC<ExecutiveReportModalProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              href="/TrendScope_Project_Report.docx"
+              download="TrendScope_Project_Report.docx"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all no-underline"
+              title="Download 15-17 Page Academic Project Report (DOCX)"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Project Report (.DOCX)</span>
+            </a>
+
             <button
               id="print-report-btn"
               onClick={handlePrint}

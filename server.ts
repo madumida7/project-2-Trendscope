@@ -203,6 +203,17 @@ app.get('/api/database/dump.sql', (req, res) => {
   }
 });
 
+// Download Academic Project Report in Word (.docx) format
+app.get(['/api/download-report', '/TrendScope_Project_Report.docx'], (req, res) => {
+  const filePath = path.join(process.cwd(), 'public', 'TrendScope_Project_Report.docx');
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', 'attachment; filename="TrendScope_Project_Report.docx"');
+    return res.sendFile(filePath);
+  }
+  res.status(404).send('Project report document not found.');
+});
+
 app.get('/api/database/tables/:table', (req, res) => {
   try {
     const { table } = req.params;

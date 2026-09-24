@@ -12,7 +12,8 @@ import {
   ChevronDown,
   Palette,
   Check,
-  ExternalLink
+  ExternalLink,
+  FileText
 } from 'lucide-react';
 import { Dataset, User, ThemePalette } from '../types';
 import { THEME_PALETTES, getPalette } from '../utils/themeConfig';
@@ -191,6 +192,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Executive Report</span>
           </button>
+
+          {/* Direct Download Academic Report (.DOCX) */}
+          <a
+            id="nav-doc-report-link"
+            href="/TrendScope_Project_Report.docx"
+            download="TrendScope_Project_Report.docx"
+            className={`hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer no-underline ${
+              darkMode
+                ? 'bg-blue-950/40 border-blue-800/60 hover:bg-blue-900/50 text-blue-300'
+                : 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
+            }`}
+            title="Download Complete 15-17 Page Academic Project Report in Microsoft Word (.DOCX)"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <span>Word Report (.DOCX)</span>
+          </a>
 
           {/* Palette Customizer Menu Button */}
           <div className="relative">
