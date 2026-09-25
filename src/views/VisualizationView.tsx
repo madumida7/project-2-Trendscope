@@ -14,7 +14,8 @@ import {
   Maximize2,
   HelpCircle,
   TrendingUp,
-  Filter
+  Filter,
+  FileText
 } from 'lucide-react';
 import { Dataset, ChartType, ThemePalette } from '../types';
 import { downloadCanvasAsImage } from '../utils/exportUtils';
@@ -27,12 +28,14 @@ interface VisualizationViewProps {
   dataset: Dataset;
   darkMode: boolean;
   themePalette?: ThemePalette;
+  onOpenReportModal?: () => void;
 }
 
 export const VisualizationView: React.FC<VisualizationViewProps> = ({
   dataset,
   darkMode,
   themePalette = 'indigo',
+  onOpenReportModal,
 }) => {
   const activePalette = getPalette(themePalette);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -256,7 +259,19 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {onOpenReportModal && (
+            <button
+              id="export-visual-report-btn"
+              onClick={onOpenReportModal}
+              className={`px-3.5 py-2 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold shadow-md ${activePalette.glowShadow} transition-all flex items-center gap-1.5 cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+              title="Export printable visual intelligence report with charts & summaries"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Export Visual Report</span>
+            </button>
+          )}
+
           <button
             id="download-chart-btn"
             onClick={() => downloadCanvasAsImage('trendscope-main-chart', `${dataset.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_chart.png`)}

@@ -71,10 +71,10 @@ export default function App() {
     }
   }, [darkMode]);
 
-  const handleDatasetLoaded = (newDataset: Dataset) => {
+  const handleDatasetLoaded = (newDataset: Dataset, targetTab: NavTab = 'predictions') => {
     setDatasets((prev) => [newDataset, ...prev.filter((d) => d.id !== newDataset.id)]);
     setCurrentDataset(newDataset);
-    setActiveTab('dashboard');
+    setActiveTab(targetTab);
   };
 
   const handleDeleteDataset = (id: string) => {
@@ -117,6 +117,7 @@ export default function App() {
         onOpenReportModal={() => setIsReportModalOpen(true)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        activeTab={activeTab}
       />
 
       {/* Main Workspace Frame: Sidebar + Active View */}
@@ -140,15 +141,19 @@ export default function App() {
             <DashboardView
               currentUser={currentUser}
               currentDataset={currentDataset}
+              datasets={datasets}
+              onSelectDataset={(ds) => setCurrentDataset(ds)}
               onNavigate={(tab) => setActiveTab(tab)}
               darkMode={darkMode}
               themePalette={themePalette}
-              onOpenReportModal={() => setIsReportModalOpen(true)}
             />
           )}
 
           {activeTab === 'upload' && (
             <UploadView
+              datasets={datasets}
+              currentDataset={currentDataset}
+              onSelectDataset={(ds) => setCurrentDataset(ds)}
               onDatasetLoaded={handleDatasetLoaded}
               darkMode={darkMode}
               themePalette={themePalette}
@@ -160,12 +165,15 @@ export default function App() {
               dataset={currentDataset}
               darkMode={darkMode}
               themePalette={themePalette}
+              onOpenReportModal={() => setIsReportModalOpen(true)}
             />
           )}
 
           {activeTab === 'predictions' && (
             <PredictionView
               dataset={currentDataset}
+              datasets={datasets}
+              onSelectDataset={(ds) => setCurrentDataset(ds)}
               darkMode={darkMode}
               themePalette={themePalette}
               onOpenReportModal={() => setIsReportModalOpen(true)}

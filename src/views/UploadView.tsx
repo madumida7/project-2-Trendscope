@@ -8,21 +8,30 @@ import {
   Table as TableIcon, 
   Database, 
   ArrowRight, 
-  Search
+  Search,
+  BrainCircuit,
+  BarChart3
 } from 'lucide-react';
 import { ColumnProfile, Dataset, ThemePalette } from '../types';
 import { profileColumns, detectDatasetDomain } from '../utils/dataAnalyzer';
 import { SAMPLE_DATASETS } from '../data/sampleDatasets';
 import { getPalette } from '../utils/themeConfig';
+import { NavTab } from '../components/Sidebar';
 
 interface UploadViewProps {
-  onDatasetLoaded: (dataset: Dataset) => void;
+  onDatasetLoaded: (dataset: Dataset, targetTab?: NavTab) => void;
+  datasets?: Dataset[];
+  currentDataset?: Dataset;
+  onSelectDataset?: (dataset: Dataset) => void;
   darkMode: boolean;
   themePalette?: ThemePalette;
 }
 
 export const UploadView: React.FC<UploadViewProps> = ({ 
   onDatasetLoaded, 
+  datasets,
+  currentDataset,
+  onSelectDataset,
   darkMode,
   themePalette = 'indigo'
 }) => {
@@ -145,7 +154,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
     setTimeout(() => setUploadSuccess(false), 3000);
   };
 
-  const handleCommitDataset = () => {
+  const handleCommitDataset = (targetTab: NavTab = 'predictions') => {
     if (!parsedRows || parsedRows.length === 0) return;
 
     const newDataset: Dataset = {
@@ -162,7 +171,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
       tags: [detectedDomain.toUpperCase(), 'Custom Upload'],
     };
 
-    onDatasetLoaded(newDataset);
+    onDatasetLoaded(newDataset, targetTab);
     setUploadSuccess(true);
     setTimeout(() => setUploadSuccess(false), 3000);
   };
@@ -256,71 +265,103 @@ export const UploadView: React.FC<UploadViewProps> = ({
         </button>
       </div>
 
-      {/* TAB 1: Preloaded Benchmark Datasets */}
+      {/* TAB 1: Datasets Registry & Benchmarks */}
       {activeTab === 'samples' && (
         <div className="space-y-4">
-          <div className={`text-xs font-semibold uppercase tracking-wider ${
-            darkMode ? 'text-slate-400' : 'text-slate-500'
-          }`}>
-            Select an industry benchmark to test automatic context detection & storytelling predictions:
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className={`text-xs font-semibold uppercase tracking-wider ${
+              darkMode ? 'text-slate-400' : 'text-slate-500'
+            }`}>
+              Available Workspace & Benchmark Datasets ({datasets && datasets.length > 0 ? datasets.length : SAMPLE_DATASETS.length}):
+            </div>
+            {currentDataset && (
+              <span className="text-xs text-slate-400 font-mono">
+                Active: <strong className={darkMode ? 'text-indigo-300' : 'text-indigo-600'}>{currentDataset.name}</strong>
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {SAMPLE_DATASETS.map((sample) => (
-              <div
-                key={sample.id}
-                className={`p-5 rounded-2xl border transition-all ${
-                  darkMode 
-                    ? 'bg-[#0d1424]/80 border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
-                    : 'bg-white/95 border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
-                } glass-card-hover flex flex-col justify-between`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full border ${
-                      darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
-                    }`}>
-                      {sample.category}
-                    </span>
-                    <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {sample.rowCount} records • {sample.columnCount} columns
-                    </span>
-                  </div>
+            {(datasets && datasets.length > 0 ? datasets : SAMPLE_DATASETS).map((sample) => {
+              const isActive = currentDataset?.id === sample.id;
+              const isCustomUpload = !SAMPLE_DATASETS.some((s) => s.id === sample.id);
 
-                  <h3 className={`text-base font-bold mb-1.5 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {sample.name}
-                  </h3>
-                  <p className={`text-xs leading-relaxed mb-4 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {sample.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {sample.tags.map((tag) => (
-                      <span key={tag} className={`text-[10px] px-2 py-0.5 rounded ${
-                        darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
-                      }`}>
-                        #{tag}
+              return (
+                <div
+                  key={sample.id}
+                  className={`p-5 rounded-2xl border transition-all ${
+                    isActive
+                      ? darkMode
+                        ? 'bg-[#101a33] border-indigo-500/50 shadow-[0_0_25px_rgba(99,102,241,0.2)] ring-1 ring-indigo-500/40'
+                        : 'bg-indigo-50/70 border-indigo-300 shadow-md ring-1 ring-indigo-300'
+                      : darkMode 
+                        ? 'bg-[#0d1424]/80 border-slate-800/80 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                        : 'bg-white/95 border-slate-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
+                  } glass-card-hover flex flex-col justify-between`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-full border ${
+                          darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
+                        }`}>
+                          {sample.category}
+                        </span>
+                        {isActive && (
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1">
+                            ✓ ACTIVE NOW
+                          </span>
+                        )}
+                        {isCustomUpload && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                            Custom Upload
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {sample.rowCount} records • {sample.columnCount} columns
                       </span>
-                    ))}
+                    </div>
+
+                    <h3 className={`text-base font-bold mb-1.5 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      {sample.name}
+                    </h3>
+                    <p className={`text-xs leading-relaxed mb-4 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {sample.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {sample.tags.map((tag) => (
+                        <span key={tag} className={`text-[10px] px-2 py-0.5 rounded ${
+                          darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`pt-3 border-t flex items-center justify-between ${
+                    darkMode ? 'border-slate-800' : 'border-slate-200'
+                  }`}>
+                    <span className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Owner: {sample.uploadedBy}
+                    </span>
+                    <button
+                      onClick={() => onSelectDataset ? onSelectDataset(sample) : handleLoadSample(sample)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        isActive
+                          ? 'bg-emerald-600 text-white shadow-md cursor-default'
+                          : `bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} hover:scale-[1.02] active:scale-[0.98]`
+                      }`}
+                    >
+                      <span>{isActive ? 'Active in Workspace' : 'Switch to this Dataset'}</span>
+                      {!isActive && <ArrowRight className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                 </div>
-
-                <div className={`pt-3 border-t flex items-center justify-between ${
-                  darkMode ? 'border-slate-800' : 'border-slate-200'
-                }`}>
-                  <span className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Owner: {sample.uploadedBy}
-                  </span>
-                  <button
-                    onClick={() => handleLoadSample(sample)}
-                    className={`px-3.5 py-1.5 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold shadow-md ${activePalette.glowShadow} transition-all flex items-center gap-1.5 cursor-pointer`}
-                  >
-                    <span>Load Into Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -453,13 +494,38 @@ export const UploadView: React.FC<UploadViewProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={handleCommitDataset}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Confirm & Activate Dataset</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                onClick={() => handleCommitDataset('predictions')}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                title="Activate this dataset and immediately view statistical predictions"
+              >
+                <BrainCircuit className="w-4 h-4" />
+                <span>Activate & View Predictions</span>
+              </button>
+
+              <button
+                onClick={() => handleCommitDataset('visualizations')}
+                className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  darkMode 
+                    ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200' 
+                    : 'bg-white hover:bg-slate-50 border-slate-300 text-slate-700 shadow-sm'
+                }`}
+                title="Activate this dataset and view multi-modal charts"
+              >
+                <BarChart3 className="w-4 h-4 text-emerald-500" />
+                <span>View Charts</span>
+              </button>
+
+              <button
+                onClick={() => handleCommitDataset('dashboard')}
+                className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                title="Activate this dataset and go to main executive dashboard"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Dashboard</span>
+              </button>
+            </div>
           </div>
 
           {/* Column Profiling Cards */}

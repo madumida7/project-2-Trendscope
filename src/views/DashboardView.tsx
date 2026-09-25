@@ -8,13 +8,19 @@ import {
   ArrowUpRight, 
   Layers, 
   Clock, 
-  FileText, 
   ChevronRight,
   Activity,
   Award,
   Zap,
   HeartPulse,
-  UploadCloud
+  UploadCloud,
+  CheckCircle2,
+  Sliders,
+  Target,
+  Database,
+  ArrowRight,
+  Compass,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Dataset, PredictionInsight, InsightCardItem, User, ThemePalette } from '../types';
 import { generatePredictions, generateInsightCards } from '../utils/dataAnalyzer';
@@ -24,19 +30,21 @@ import { getPalette } from '../utils/themeConfig';
 interface DashboardViewProps {
   currentUser: User | null;
   currentDataset: Dataset;
+  datasets?: Dataset[];
+  onSelectDataset?: (dataset: Dataset) => void;
   onNavigate: (tab: NavTab) => void;
   darkMode: boolean;
   themePalette?: ThemePalette;
-  onOpenReportModal: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   currentUser,
   currentDataset,
+  datasets = [],
+  onSelectDataset,
   onNavigate,
   darkMode,
   themePalette = 'indigo',
-  onOpenReportModal,
 }) => {
   const activePalette = getPalette(themePalette);
   const [predictions, setPredictions] = useState<PredictionInsight[]>([]);
@@ -47,6 +55,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     predictionsCount: 0,
     avgConfidence: 0,
   });
+
+  const isAdmin = currentUser?.role === 'admin';
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -61,7 +71,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setPredictions(preds);
     setInsightCards(cards);
 
-    // Animated counter effect
+    // Animated counter effect for admin telemetry
     const targetRows = currentDataset.rowCount;
     const targetTrends = cards.length + 2;
     const targetPreds = preds.length;
@@ -101,6 +111,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   };
 
+  const primaryPrediction = predictions[0] || null;
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       
@@ -120,21 +132,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
             }`}>
               <Sparkles className="w-3.5 h-3.5" />
-              Automated Intelligence Online
+              {isAdmin ? 'System Administration & Intelligence' : 'Interactive Analytics Workspace'}
             </div>
             
             <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
               {getGreeting()}, <span className={`bg-gradient-to-r ${activePalette.swatchGradient} bg-clip-text text-transparent`}>
-                {currentUser?.name || 'Lead Analyst'}
+                {currentUser?.name || 'Analyst'}
               </span>
             </h1>
             
             <p className={`text-sm max-w-2xl leading-relaxed ${
               darkMode ? 'text-slate-300' : 'text-slate-600'
             }`}>
-              Active workspace loaded with <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{currentDataset.name}</strong>. The predictive engine has processed {currentDataset.rowCount} data points and auto-detected domain context: <span className={`uppercase font-bold ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`}>{currentDataset.category}</span>.
+              {isAdmin ? (
+                <>
+                  Administrative telemetry for <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{currentDataset.name}</strong>. System holds {currentDataset.rowCount} rows across {currentDataset.columnCount} attributes with automated schema mapping and statistical profiling.
+                </>
+              ) : (
+                <>
+                  Currently exploring <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{currentDataset.name}</strong>. TrendScope has transformed your numbers into interactive visualizations, momentum trends, and clear forward-looking stories.
+                </>
+              )}
             </p>
           </div>
 
@@ -164,101 +184,299 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Summary KPI Cards with Animated Counters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        {/* Total Data */}
-        <div className={`p-5 rounded-2xl border transition-all ${
-          darkMode 
-            ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
-            : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
-        } glass-card-hover`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>Total Observations</span>
-            <div className={`p-2 rounded-xl ${darkMode ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-            {animatedValues.totalRows}
-          </div>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>{currentDataset.columnCount} Profiled Columns</span>
-          </div>
-        </div>
+      {/* ========================================================================= */}
+      {/* CONDITIONAL METRIC TILES: ADMIN vs USER                                     */}
+      {/* ========================================================================= */}
 
-        {/* Trends Found */}
-        <div className={`p-5 rounded-2xl border transition-all ${
-          darkMode 
-            ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
-            : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
-        } glass-card-hover`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>Trends Detected</span>
-            <div className={`p-2 rounded-xl ${darkMode ? 'bg-cyan-500/15 text-cyan-400' : 'bg-cyan-50 text-cyan-600'}`}>
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-          <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-            {animatedValues.trendsFound} Patterns
-          </div>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-cyan-500 font-semibold">
-            <span>Moving avg + Volatility check</span>
-          </div>
-        </div>
-
-        {/* Predictions */}
-        <div className={`p-5 rounded-2xl border transition-all ${
-          darkMode 
-            ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
-            : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
-        } glass-card-hover`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>Active Predictions</span>
-            <div className={`p-2 rounded-xl ${darkMode ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-            {animatedValues.predictionsCount} Forecasts
-          </div>
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
-            <span>Human narrative format</span>
-          </div>
-        </div>
-
-        {/* Confidence Rating */}
-        <div className={`p-5 rounded-2xl border transition-all ${
-          darkMode 
-            ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
-            : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
-        } glass-card-hover`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-bold uppercase tracking-wider ${
-              darkMode ? 'text-slate-400' : 'text-slate-500'
-            }`}>Confidence Score</span>
-            <div className={`p-2 rounded-xl ${darkMode ? 'bg-violet-500/15 text-violet-400' : 'bg-violet-50 text-violet-600'}`}>
+      {isAdmin ? (
+        /* ==================== ADMIN METRICS: TELEMETRY & OBSERVATIONS ==================== */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              darkMode ? 'text-indigo-400' : 'text-indigo-600'
+            }`}>
               <ShieldCheck className="w-4 h-4" />
+              Admin System Telemetry & Observation Metrics
+            </span>
+            <span className="text-[11px] font-mono text-slate-400">
+              Role: <strong className="text-emerald-500 uppercase">Administrator</strong>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Data */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              darkMode 
+                ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
+                : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
+            } glass-card-hover`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold uppercase tracking-wider ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>Total Observations</span>
+                <div className={`p-2 rounded-xl ${darkMode ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                  <Layers className="w-4 h-4" />
+                </div>
+              </div>
+              <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                {animatedValues.totalRows}
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{currentDataset.columnCount} Profiled Columns</span>
+              </div>
+            </div>
+
+            {/* Trends Found */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              darkMode 
+                ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
+                : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
+            } glass-card-hover`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold uppercase tracking-wider ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>Trends Detected</span>
+                <div className={`p-2 rounded-xl ${darkMode ? 'bg-cyan-500/15 text-cyan-400' : 'bg-cyan-50 text-cyan-600'}`}>
+                  <Activity className="w-4 h-4" />
+                </div>
+              </div>
+              <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                {animatedValues.trendsFound} Patterns
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-xs text-cyan-500 font-semibold">
+                <span>Moving avg + Volatility check</span>
+              </div>
+            </div>
+
+            {/* Predictions */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              darkMode 
+                ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
+                : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
+            } glass-card-hover`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold uppercase tracking-wider ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>Active Predictions</span>
+                <div className={`p-2 rounded-xl ${darkMode ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                  <TrendingUp className="w-4 h-4" />
+                </div>
+              </div>
+              <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                {animatedValues.predictionsCount} Forecasts
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
+                <span>Algorithmic storytelling format</span>
+              </div>
+            </div>
+
+            {/* Confidence Rating */}
+            <div className={`p-5 rounded-2xl border transition-all ${
+              darkMode 
+                ? 'bg-[#0d1424]/80 border-slate-800/80 text-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.35)]' 
+                : 'bg-white/90 border-slate-200/90 text-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)]'
+            } glass-card-hover`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold uppercase tracking-wider ${
+                  darkMode ? 'text-slate-400' : 'text-slate-500'
+                }`}>System Confidence</span>
+                <div className={`p-2 rounded-xl ${darkMode ? 'bg-violet-500/15 text-violet-400' : 'bg-violet-50 text-violet-600'}`}>
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                {animatedValues.avgConfidence}%
+              </div>
+              <div className={`flex items-center gap-1.5 mt-2 text-xs font-semibold ${
+                darkMode ? activePalette.textAccentDark : activePalette.textAccentLight
+              }`}>
+                <span>Statistical Significance</span>
+              </div>
             </div>
           </div>
-          <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-            {animatedValues.avgConfidence}%
-          </div>
-          <div className={`flex items-center gap-1.5 mt-2 text-xs font-semibold ${
-            darkMode ? activePalette.textAccentDark : activePalette.textAccentLight
-          }`}>
-            <span>Statistical Significance</span>
-          </div>
         </div>
+      ) : (
+        /* ==================== USER COCKPIT: PERSONALIZED, ACTIONABLE TILES ==================== */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              darkMode ? 'text-emerald-400' : 'text-emerald-600'
+            }`}>
+              <Compass className="w-4 h-4" />
+              Personalized Insights Cockpit
+            </span>
+            <span className={`text-xs font-semibold ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Ready for exploration
+            </span>
+          </div>
 
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Card 1: Key Metric Momentum */}
+            <div 
+              onClick={() => onNavigate('visualizations')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#121c35] border-indigo-500/30 text-slate-100 hover:border-indigo-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-indigo-50/50 border-indigo-200 text-slate-800 hover:border-indigo-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-xs font-bold uppercase tracking-wider ${
+                    darkMode ? 'text-indigo-400' : 'text-indigo-600'
+                  }`}>Primary Momentum</span>
+                  <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-lg font-extrabold line-clamp-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {primaryPrediction?.metricName || 'Primary Metric'}
+                </div>
+                <p className={`text-xs mt-1 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {primaryPrediction ? `Projected to reach ${primaryPrediction.projectedValue.toLocaleString()} in the upcoming period.` : 'Live trends ready in charts.'}
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-indigo-500">
+                <span>Explore in Charts</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 2: Strategic Recommendation */}
+            <div 
+              onClick={() => onNavigate('predictions')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#11241f] border-emerald-500/30 text-slate-100 hover:border-emerald-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-emerald-50/50 border-emerald-200 text-slate-800 hover:border-emerald-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-500">
+                    Recommended Action
+                  </span>
+                  <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+                    <Target className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-sm font-bold line-clamp-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {primaryPrediction?.recommendation || 'Analyze trend inflection points to optimize operations.'}
+                </div>
+                <p className={`text-[11px] mt-1.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  High-priority insight automatically synthesized from your data.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-emerald-500">
+                <span>View Full Story</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 3: What-If Simulation */}
+            <div 
+              onClick={() => onNavigate('predictions')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#251b38] border-violet-500/30 text-slate-100 hover:border-violet-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-violet-50/50 border-violet-200 text-slate-800 hover:border-violet-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-violet-400">
+                    Scenario Simulator
+                  </span>
+                  <div className="p-2 rounded-xl bg-violet-500/15 text-violet-400">
+                    <Sliders className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-base font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Test "What-If" Outcomes
+                </div>
+                <p className={`text-xs mt-1 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Adjust growth factors from 0.5x to 2.0x to stress-test your dataset's future capacity.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-violet-500">
+                <span>Launch Simulator</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 4: Quick Launchpad */}
+            <div 
+              onClick={() => onNavigate('upload')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#122233] border-cyan-500/30 text-slate-100 hover:border-cyan-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-cyan-50/50 border-cyan-200 text-slate-800 hover:border-cyan-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-cyan-500">
+                    Data Ingestion
+                  </span>
+                  <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400">
+                    <UploadCloud className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-base font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  Upload Custom CSV
+                </div>
+                <p className={`text-xs mt-1 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Drop any spreadsheet to immediately extract charts and predictive models.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-cyan-500">
+                <span>Upload New File</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+          </div>
+
+          {/* 3-Step Guided Workspace Helper */}
+          <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4 transition-all ${
+            darkMode ? 'bg-[#0a0f1c]/90 border-slate-800' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shrink-0 bg-gradient-to-tr ${activePalette.swatchGradient}`}>
+                ✨
+              </div>
+              <div>
+                <div className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  How to get the most out of TrendScope:
+                </div>
+                <div className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  1. Explore Charts & Breakdown &nbsp;•&nbsp; 2. Read Plain-English Predictions &nbsp;•&nbsp; 3. Test Scenarios with the interactive slider
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => onNavigate('visualizations')}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer transition-colors"
+              >
+                Go to Charts
+              </button>
+              <button
+                onClick={() => onNavigate('predictions')}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
+                  darkMode ? 'bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                Go to Predictions
+              </button>
+            </div>
+          </div>
+
+        </div>
+      )}
 
       {/* 4 Storytelling Insight Cards */}
       <div className="space-y-4">
@@ -441,7 +659,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <ShieldCheck className="w-4 h-4 text-cyan-500 shrink-0 mt-0.5" />
                 <div>
                   <span className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    Recommended Executive Action: 
+                    Recommended Action: 
                   </span>
                   <span className={`ml-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                     {predictions[0].recommendation}
@@ -456,7 +674,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
 
-        {/* Recent Activity Panel */}
+        {/* Live Operational Activity Feed */}
         <div className={`p-6 rounded-3xl border flex flex-col justify-between ${
           darkMode 
             ? 'bg-[#0d1424]/80 border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.35)]' 
@@ -468,9 +686,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 darkMode ? 'text-white' : 'text-slate-900'
               }`}>
                 <Clock className={`w-4 h-4 ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`} />
-                Recent Activity Feed
+                Live Operational Feed
               </h3>
-              <span className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>Live</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                darkMode ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-800'
+              }`}>Live</span>
             </div>
 
             <div className="space-y-3.5">
@@ -482,13 +702,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div>
                   <div className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    Prediction Model Calculated
+                    Prediction Engine Synchronized
                   </div>
                   <div className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Generated 3-period moving average forecast
+                    Active model running moving average extrapolations
                   </div>
                   <span className={`text-[10px] font-mono font-semibold ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`}>
-                    10 mins ago
+                    Just now
                   </span>
                 </div>
               </div>
@@ -501,13 +721,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div>
                   <div className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    Dataset Profiled
+                    Active Dataset Loaded
                   </div>
                   <div className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Identified {currentDataset.columns.length} attributes with statistical bounds
+                    {currentDataset.name} ({currentDataset.rowCount} rows)
                   </div>
                   <span className={`text-[10px] font-mono font-semibold ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`}>
-                    25 mins ago
+                    Active
                   </span>
                 </div>
               </div>
@@ -516,17 +736,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
                   darkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
                 }`}>
-                  <FileText className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    Executive Report Compiled
+                    Multi-Modal Visual Suite Ready
                   </div>
                   <div className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    Ready for high-resolution print and export
+                    Area, Bar, Line & Composition charts online
                   </div>
                   <span className={`text-[10px] font-mono font-semibold ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`}>
-                    1 hr ago
+                    Online
                   </span>
                 </div>
               </div>
@@ -535,19 +755,130 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className={`pt-4 mt-4 border-t ${darkMode ? 'border-slate-800' : 'border-slate-200'}`}>
             <button
-              onClick={onOpenReportModal}
+              onClick={() => onNavigate('visualizations')}
               className={`w-full py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
                 darkMode 
                   ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200' 
                   : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800'
               }`}
             >
-              <FileText className={`w-3.5 h-3.5 ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`} />
-              <span>Generate Executive Summary</span>
+              <BarChart3 className={`w-3.5 h-3.5 ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`} />
+              <span>Explore Visual Analytics</span>
             </button>
           </div>
         </div>
 
+      </div>
+
+      {/* ========================================================================= */}
+      {/* DOWN THERE: ACTIVE DATASET REGISTRY & INSTANT SWITCHER                   */}
+      {/* Updates immediately when a user uploads any dataset                      */}
+      {/* ========================================================================= */}
+      <div className={`p-6 sm:p-7 rounded-3xl border transition-all ${
+        darkMode 
+          ? 'bg-[#0d1424]/90 border-slate-800 shadow-[0_8px_30px_rgba(0,0,0,0.3)]' 
+          : 'bg-white border-slate-200 shadow-sm'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+              darkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+            }`}>
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                Active Workspace & Ingested Datasets
+                <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                  darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
+                }`}>
+                  {datasets.length} Loaded
+                </span>
+              </h3>
+              <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                The highlighted card is your active dataset. Click any dataset below to switch workspaces immediately:
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('upload')}
+            className={`px-4 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-center shrink-0 ${
+              darkMode 
+                ? 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-200' 
+                : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+            }`}
+          >
+            <UploadCloud className="w-4 h-4 text-indigo-500" />
+            <span>Upload New CSV Dataset</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {datasets.map((ds) => {
+            const isActive = ds.id === currentDataset.id;
+
+            return (
+              <div
+                key={ds.id}
+                onClick={() => onSelectDataset && onSelectDataset(ds)}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  isActive
+                    ? darkMode
+                      ? 'bg-indigo-950/40 border-indigo-500/60 shadow-[0_0_25px_rgba(99,102,241,0.25)] ring-1 ring-indigo-500/50'
+                      : 'bg-indigo-50/80 border-indigo-300 shadow-md ring-1 ring-indigo-300'
+                    : darkMode
+                      ? 'bg-slate-900/60 border-slate-800/80 hover:border-slate-700 text-slate-300'
+                      : 'bg-slate-50/80 border-slate-200 hover:border-slate-300 text-slate-700'
+                } glass-card-hover`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${
+                      darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-200/70 text-slate-700'
+                    }`}>
+                      {ds.category}
+                    </span>
+
+                    {isActive ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        ACTIVE
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {ds.rowCount} rows
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={`font-bold text-sm mb-1 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                    {ds.name}
+                  </div>
+                  <p className={`text-[11px] line-clamp-2 leading-relaxed mb-3 ${
+                    darkMode ? 'text-slate-400' : 'text-slate-600'
+                  }`}>
+                    {ds.description}
+                  </p>
+                </div>
+
+                <div className={`pt-2.5 border-t flex items-center justify-between text-xs ${
+                  darkMode ? 'border-slate-800' : 'border-slate-200'
+                }`}>
+                  <span className="text-[10px] text-slate-400">
+                    By {ds.uploadedBy || 'User'}
+                  </span>
+                  
+                  <span className={`text-xs font-bold flex items-center gap-1 ${
+                    isActive ? 'text-emerald-500 font-extrabold' : 'text-indigo-500'
+                  }`}>
+                    {isActive ? 'Current Active' : 'Switch →'}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
     </div>

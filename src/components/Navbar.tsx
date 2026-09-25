@@ -12,11 +12,11 @@ import {
   ChevronDown,
   Palette,
   Check,
-  ExternalLink,
-  FileText
+  ExternalLink
 } from 'lucide-react';
 import { Dataset, User, ThemePalette } from '../types';
 import { THEME_PALETTES, getPalette } from '../utils/themeConfig';
+import { NavTab } from './Sidebar';
 
 interface NavbarProps {
   darkMode: boolean;
@@ -31,6 +31,7 @@ interface NavbarProps {
   onOpenReportModal: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  activeTab?: NavTab;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -46,35 +47,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenReportModal,
   searchTerm,
   setSearchTerm,
+  activeTab = 'dashboard',
 }) => {
   const [showDatasetDropdown, setShowDatasetDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showPaletteMenu, setShowPaletteMenu] = useState(false);
-  const [downloadingDocx, setDownloadingDocx] = useState(false);
-
-  const handleDownloadDocx = async () => {
-    try {
-      setDownloadingDocx(true);
-      const res = await fetch('/TrendScope_Project_Report.docx');
-      if (!res.ok) throw new Error('File not found');
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'TrendScope_Project_Report.docx';
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
-      }, 500);
-    } catch (err) {
-      window.open('/TrendScope_Project_Report.docx', '_blank');
-    } finally {
-      setDownloadingDocx(false);
-    }
-  };
 
   const activePalette = getPalette(themePalette);
 
@@ -206,32 +184,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ExternalLink className="w-3 h-3 opacity-70" />
           </a>
 
-          {/* Export Executive Report */}
-          <button
-            id="export-report-btn"
-            onClick={onOpenReportModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
-            title="Export printable executive report"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Executive Report</span>
-          </button>
-
-          {/* Direct Download Academic Report (.DOCX) */}
-          <button
-            id="nav-doc-report-link"
-            onClick={handleDownloadDocx}
-            disabled={downloadingDocx}
-            className={`hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-blue-950/40 border-blue-800/60 hover:bg-blue-900/50 text-blue-300'
-                : 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
-            }`}
-            title="Download Complete 15-17 Page Academic Project Report in Microsoft Word (.DOCX)"
-          >
-            <FileText className="w-3.5 h-3.5 text-blue-400" />
-            <span>{downloadingDocx ? 'Downloading...' : 'Word Report (.DOCX)'}</span>
-          </button>
+          {/* Export Report - Only available in Predictions & Visualizations views */}
+          {(activeTab === 'predictions' || activeTab === 'visualizations') && (
+            <button
+              id="export-report-btn"
+              onClick={onOpenReportModal}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+              title="Export printable executive report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {activeTab === 'predictions' ? 'Export Predictions' : 'Export Visual Report'}
+              </span>
+            </button>
+          )}
 
           {/* Palette Customizer Menu Button */}
           <div className="relative">

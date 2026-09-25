@@ -15,7 +15,9 @@ import {
   Users,
   GraduationCap,
   Activity,
-  HeartPulse
+  HeartPulse,
+  Database,
+  FileText
 } from 'lucide-react';
 import { Dataset, PredictionInsight, InsightCardItem, ThemePalette } from '../types';
 import { generatePredictions, generateInsightCards } from '../utils/dataAnalyzer';
@@ -24,6 +26,8 @@ import { getPalette } from '../utils/themeConfig';
 
 interface PredictionViewProps {
   dataset: Dataset;
+  datasets?: Dataset[];
+  onSelectDataset?: (ds: Dataset) => void;
   darkMode: boolean;
   themePalette?: ThemePalette;
   onOpenReportModal: () => void;
@@ -32,6 +36,8 @@ interface PredictionViewProps {
 
 export const PredictionView: React.FC<PredictionViewProps> = ({
   dataset,
+  datasets,
+  onSelectDataset,
   darkMode,
   themePalette = 'indigo',
   onOpenReportModal,
@@ -138,14 +144,80 @@ export const PredictionView: React.FC<PredictionViewProps> = ({
             </button>
 
             <button
+              id="export-predictions-report-btn"
               onClick={onOpenReportModal}
-              className={`px-4 py-2.5 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg ${activePalette.glowShadow}`}
+              className={`px-4 py-2.5 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg ${activePalette.glowShadow} hover:scale-[1.02] active:scale-[0.98]`}
+              title="Download or print complete predictive intelligence report"
             >
-              <Share2 className="w-4 h-4" />
-              <span>Executive Brief</span>
+              <FileText className="w-4 h-4" />
+              <span>Export Predictions Report</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Active Dataset Indicator & Quick Switcher */}
+      <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+        darkMode 
+          ? 'bg-[#0d1424]/90 border-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.25)]' 
+          : 'bg-white border-slate-200 shadow-[0_2px_12px_rgba(15,23,42,0.04)]'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            darkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+          }`}>
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${
+                darkMode ? 'text-slate-400' : 'text-slate-500'
+              }`}>
+                Active Forecasting Dataset:
+              </span>
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
+              }`}>
+                {dataset.category.toUpperCase()}
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                ({dataset.rowCount} rows · {dataset.columnCount} columns)
+              </span>
+            </div>
+            <div className={`text-base font-extrabold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              {dataset.name}
+            </div>
+          </div>
+        </div>
+
+        {datasets && datasets.length > 1 && onSelectDataset && (
+          <div className="flex items-center gap-2.5 self-start sm:self-center shrink-0">
+            <label htmlFor="pred-dataset-select" className={`text-xs font-semibold ${
+              darkMode ? 'text-slate-400' : 'text-slate-600'
+            }`}>
+              Select Dataset:
+            </label>
+            <select
+              id="pred-dataset-select"
+              value={dataset.id}
+              onChange={(e) => {
+                const found = datasets.find((d) => d.id === e.target.value);
+                if (found) onSelectDataset(found);
+              }}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold cursor-pointer outline-none transition-all ${
+                darkMode 
+                  ? 'bg-slate-900 border-slate-700 text-slate-100 focus:border-indigo-500' 
+                  : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-indigo-600 shadow-sm'
+              }`}
+            >
+              {datasets.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} ({d.rowCount} rows)
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Interactive "What-If" Scenario Simulator */}

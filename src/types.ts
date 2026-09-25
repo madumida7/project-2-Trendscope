@@ -58,7 +58,7 @@ export interface PredictionInsight {
   story: string; // Plain-English narrative description
   confidence: number; // 0 to 100%
   direction: TrendDirection;
-  colorHighlight: 'emerald' | 'rose' | 'amber' | 'blue' | 'purple';
+  colorHighlight: 'emerald' | 'rose' | 'amber' | 'blue' | 'purple' | 'indigo';
   metricName: string;
   changeRate: number; // e.g., +14.8% or -22%
   timeframe: string; // "next month", "this weekend", "Q3"
