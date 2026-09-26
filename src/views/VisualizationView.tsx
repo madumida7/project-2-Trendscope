@@ -15,11 +15,18 @@ import {
   HelpCircle,
   TrendingUp,
   Filter,
-  FileText
+  FileText,
+  Target,
+  Sparkles,
+  Compass,
+  Check
 } from 'lucide-react';
-import { Dataset, ChartType, ThemePalette } from '../types';
+import { Dataset, ChartType, ThemePalette, PredictionGoal } from '../types';
+import { NavTab } from '../components/Sidebar';
 import { downloadCanvasAsImage } from '../utils/exportUtils';
 import { getPalette } from '../utils/themeConfig';
+import { parseNumericValue } from '../utils/dataAnalyzer';
+import { PredictionIntentModal } from '../components/PredictionIntentModal';
 
 // Register all chart elements, controllers, scales, and plugins
 ChartJS.register(...registerables);
@@ -29,6 +36,8 @@ interface VisualizationViewProps {
   darkMode: boolean;
   themePalette?: ThemePalette;
   onOpenReportModal?: () => void;
+  onUpdateDatasetGoal?: (goal: PredictionGoal) => void;
+  onNavigate?: (tab: NavTab) => void;
 }
 
 export const VisualizationView: React.FC<VisualizationViewProps> = ({
@@ -36,6 +45,8 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
   darkMode,
   themePalette = 'indigo',
   onOpenReportModal,
+  onUpdateDatasetGoal,
+  onNavigate,
 }) => {
   const activePalette = getPalette(themePalette);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -48,19 +59,49 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showDataTable, setShowDataTable] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showIntentModal, setShowIntentModal] = useState(false);
 
-  // Derive available columns
-  const numericCols = dataset.columns.filter((c) => c.type === 'numeric');
+  // Derive available columns with auto-recovery for numeric metrics
+  const numericCols = React.useMemo(() => {
+    let list = dataset.columns.filter((c) => c.type === 'numeric');
+    if (list.length === 0 && dataset.data.length > 0) {
+      Object.keys(dataset.data[0]).forEach((k) => {
+        const hasNums = dataset.data.some((r) => parseNumericValue(r[k]) !== null);
+        if (hasNums) {
+          list.push({
+            name: k,
+            type: 'numeric',
+            distinctCount: new Set(dataset.data.map((r) => r[k])).size,
+            nullCount: 0,
+            sampleValues: dataset.data.slice(0, 3).map((r) => r[k]),
+          });
+        }
+      });
+    }
+    return list;
+  }, [dataset]);
+
   const categoricalCols = dataset.columns.filter((c) => c.type === 'categorical' || c.type === 'date');
   const filterCol = categoricalCols.find((c) => c.name.toLowerCase().includes('category') || c.name.toLowerCase().includes('department') || c.name.toLowerCase().includes('region') || c.name.toLowerCase().includes('grade')) || categoricalCols[0];
 
-  // Auto-initialize default axes
+  // Auto-initialize default axes and adopt tailored prediction goals
   useEffect(() => {
+    if (dataset.predictionGoal?.recommendedChartType) {
+      setSelectedChartType(dataset.predictionGoal.recommendedChartType);
+    }
+    if (dataset.predictionGoal?.primaryTargetMetric) {
+      const match = numericCols.find((c) => c.name.toLowerCase() === dataset.predictionGoal?.primaryTargetMetric?.toLowerCase());
+      if (match) {
+        setYAxisKey(match.name);
+      } else if (numericCols.length > 0 && (!yAxisKey || !dataset.columns.some((c) => c.name === yAxisKey))) {
+        setYAxisKey(numericCols[0].name);
+      }
+    } else if (numericCols.length > 0 && (!yAxisKey || !dataset.columns.some((c) => c.name === yAxisKey))) {
+      setYAxisKey(numericCols[0].name);
+    }
+
     if (categoricalCols.length > 0 && (!xAxisKey || !dataset.columns.some((c) => c.name === xAxisKey))) {
       setXAxisKey(categoricalCols[0].name);
-    }
-    if (numericCols.length > 0 && (!yAxisKey || !dataset.columns.some((c) => c.name === yAxisKey))) {
-      setYAxisKey(numericCols[0].name);
     }
   }, [dataset]);
 
@@ -79,7 +120,7 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
     if (!canvasRef.current || !dataset.data.length) return;
 
     const currentX = xAxisKey || categoricalCols[0]?.name || dataset.columns[0]?.name;
-    const currentY = yAxisKey || numericCols[0]?.name || dataset.columns[1]?.name;
+    const currentY = yAxisKey || numericCols[0]?.name || dataset.columns[0]?.name;
 
     if (!currentX || !currentY) return;
 
@@ -93,11 +134,12 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
       filteredData = filteredData.filter((r) => String(r[filterCol.name]) === categoryFilter);
     }
 
-    // Aggregate data by X-axis
+    // Aggregate data by X-axis (safely handles numbers, currency strings, and percentages)
     const aggregatedMap = new Map<string, number[]>();
-    filteredData.forEach((row) => {
-      const xVal = String(row[currentX] || 'Unknown');
-      const yVal = Number(row[currentY]) || 0;
+    filteredData.forEach((row, idx) => {
+      const xVal = currentX === currentY ? `Item #${idx + 1}` : String(row[currentX] !== undefined ? row[currentX] : `Item #${idx + 1}`);
+      const parsedNum = parseNumericValue(row[currentY]);
+      const yVal = parsedNum !== null ? parsedNum : 0;
       if (!aggregatedMap.has(xVal)) {
         aggregatedMap.set(xVal, []);
       }
@@ -287,6 +329,22 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
           </button>
 
           <button
+            id="tailor-chart-goals-btn"
+            onClick={() => setShowIntentModal(true)}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              dataset.predictionGoal
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-600/30'
+                : darkMode
+                ? 'bg-indigo-950/40 hover:bg-indigo-900/50 border-indigo-800/60 text-indigo-300'
+                : 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-700'
+            }`}
+            title="Tailor target metric and preferred chart visualization"
+          >
+            <Target className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{dataset.predictionGoal ? 'Customized Goals' : 'Customize Goals'}</span>
+          </button>
+
+          <button
             onClick={() => setShowDataTable(!showDataTable)}
             className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               showDataTable
@@ -313,6 +371,64 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Tailored Visual Perspective Banner */}
+      {dataset.predictionGoal && (
+        <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 ${
+          darkMode ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-200' : 'bg-indigo-50/80 border-indigo-200 text-indigo-950 shadow-xs'
+        }`}>
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0 mt-0.5 sm:mt-0">
+              <Target className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  Tailored Perspective Active
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Target Metric: {yAxisKey}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  Chart Format: {selectedChartType.toUpperCase()}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Posture: {dataset.predictionGoal.decisionPriority.replace('_', ' ')}
+                </span>
+              </div>
+              <p className="text-xs mt-1 font-medium leading-relaxed">
+                Visualizing data to solve: <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{dataset.predictionGoal.businessObjective}</strong>
+                {dataset.predictionGoal.customQuestion && (
+                  <span className="italic block text-[11px] mt-0.5 text-cyan-300">
+                    Query: "{dataset.predictionGoal.customQuestion}"
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('predictions')}
+                className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  darkMode ? 'bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                View Narrative Stories
+              </button>
+            )}
+            <button
+              onClick={() => setShowIntentModal(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Change Goals</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Chart Type Selector Switcher */}
       <div className={`flex flex-wrap items-center gap-2 p-1.5 rounded-2xl border w-fit ${
@@ -515,6 +631,22 @@ export const VisualizationView: React.FC<VisualizationViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Tailored Prediction Questions & Intent Setup Modal */}
+      <PredictionIntentModal
+        isOpen={showIntentModal}
+        onClose={() => setShowIntentModal(false)}
+        datasetName={dataset.name}
+        category={dataset.category}
+        columns={dataset.columns}
+        initialGoal={dataset.predictionGoal}
+        onApplyGoal={(goal) => {
+          onUpdateDatasetGoal?.(goal);
+          setShowIntentModal(false);
+        }}
+        darkMode={darkMode}
+        themePalette={themePalette}
+      />
 
     </div>
   );

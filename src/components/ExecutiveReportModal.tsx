@@ -62,16 +62,7 @@ export const ExecutiveReportModal: React.FC<ExecutiveReportModalProps> = ({
             <button
               id="print-report-btn"
               onClick={handlePrint}
-              className={`px-4 py-2 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all`}
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print / Save as PDF</span>
-            </button>
-
-            <button
-              id="print-report-btn"
-              onClick={handlePrint}
-              className={`px-4 py-2 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all`}
+              className={`px-4 py-2 rounded-xl bg-gradient-to-r ${activePalette.accentGradient} text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]`}
             >
               <Printer className="w-4 h-4" />
               <span>Print / Save as PDF</span>

@@ -12,6 +12,12 @@ import {
 } from 'lucide-react';
 import { Dataset, User, UserRole, ThemePalette } from '../types';
 import { getPalette } from '../utils/themeConfig';
+import { 
+  getRegisteredUsers, 
+  saveAllRegisteredUsers, 
+  deleteRegisteredUserFromStorage, 
+  persistRegisteredUser 
+} from '../utils/userStorage';
 
 interface AdminViewProps {
   currentUser: User | null;
@@ -30,44 +36,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   const activePalette = getPalette(themePalette);
 
-  const [usersList, setUsersList] = useState<User[]>([
-    {
-      id: 'user-admin-1',
-      name: 'M. Janani',
-      email: '25mca029@grd.edu.in',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2026-08-10',
-      lastLogin: 'Just now',
-    },
-    {
-      id: 'user-analyst-2',
-      name: 'D. Madhumitha',
-      email: 'madhumitha.d@trendscope.ai',
-      role: 'analyst',
-      status: 'active',
-      createdAt: '2026-08-14',
-      lastLogin: '2 hours ago',
-    },
-    {
-      id: 'user-demo-3',
-      name: 'G. Nandhini',
-      email: 'nandhini.g@trendscope.ai',
-      role: 'analyst',
-      status: 'active',
-      createdAt: '2026-09-01',
-      lastLogin: 'Yesterday',
-    },
-    {
-      id: 'user-demo-4',
-      name: 'Faculty Guide (MCA Dept)',
-      email: 'mca.guide@grd.edu.in',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2026-09-12',
-      lastLogin: '3 days ago',
-    },
-  ]);
+  const [usersList, setUsersList] = useState<User[]>(() => {
+    return getRegisteredUsers();
+  });
 
   const [searchUser, setSearchUser] = useState('');
   const [adminTab, setAdminTab] = useState<'users' | 'datasets' | 'health'>('users');
@@ -79,27 +50,31 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   // Toggle user role
   const handleToggleRole = (userId: string) => {
-    setUsersList((prev) =>
-      prev.map((u) => {
+    setUsersList((prev) => {
+      const updated = prev.map((u) => {
         if (u.id === userId) {
           const nextRole: UserRole = u.role === 'admin' ? 'analyst' : u.role === 'analyst' ? 'user' : 'admin';
           return { ...u, role: nextRole };
         }
         return u;
-      })
-    );
+      });
+      saveAllRegisteredUsers(updated as any);
+      return updated;
+    });
   };
 
   // Toggle user active / suspended status
   const handleToggleStatus = (userId: string) => {
-    setUsersList((prev) =>
-      prev.map((u) => {
+    setUsersList((prev) => {
+      const updated = prev.map((u) => {
         if (u.id === userId) {
-          return { ...u, status: u.status === 'active' ? 'suspended' : 'active' };
+          return { ...u, status: u.status === 'active' ? ('suspended' as const) : ('active' as const) };
         }
         return u;
-      })
-    );
+      });
+      saveAllRegisteredUsers(updated as any);
+      return updated;
+    });
   };
 
   // Delete user
@@ -107,7 +82,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
     setConfirmModal({
       title: 'Are you sure you want to remove this user from the workspace?',
       onConfirm: () => {
-        setUsersList((prev) => prev.filter((u) => u.id !== userId));
+        const updated = deleteRegisteredUserFromStorage(userId);
+        setUsersList(updated);
         setConfirmModal(null);
       },
     });
@@ -116,17 +92,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
   // Add new user
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserName || !newUserEmail) return;
+    if (!newUserName.trim() || !newUserEmail.trim()) return;
     const user: User = {
       id: `user-${Date.now()}`,
-      name: newUserName,
-      email: newUserEmail,
+      name: newUserName.trim(),
+      email: newUserEmail.trim().toLowerCase(),
       role: newUserRole,
       status: 'active',
       createdAt: new Date().toISOString().split('T')[0],
       lastLogin: 'Never',
     };
-    setUsersList([user, ...usersList]);
+    persistRegisteredUser({ ...user, passwordHash: 'password123' });
+    const updated = [user, ...usersList.filter(u => u.email.toLowerCase() !== user.email.toLowerCase())];
+    setUsersList(updated);
     setNewUserName('');
     setNewUserEmail('');
     setShowAddUserModal(false);

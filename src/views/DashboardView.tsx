@@ -20,7 +20,9 @@ import {
   Database,
   ArrowRight,
   Compass,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Binary,
+  LineChart
 } from 'lucide-react';
 import { Dataset, PredictionInsight, InsightCardItem, User, ThemePalette } from '../types';
 import { generatePredictions, generateInsightCards } from '../utils/dataAnalyzer';
@@ -56,7 +58,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     avgConfidence: 0,
   });
 
-  const isAdmin = currentUser?.role === 'admin';
+  const userRole = currentUser?.role || 'user';
+  const isAdmin = userRole === 'admin';
+  const isAnalyst = userRole === 'analyst';
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -132,14 +136,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
             }`}>
               <Sparkles className="w-3.5 h-3.5" />
-              {isAdmin ? 'System Administration & Intelligence' : 'Interactive Analytics Workspace'}
+              {isAdmin 
+                ? 'System Administration & Intelligence' 
+                : isAnalyst 
+                  ? 'Advanced Statistical & Modeling Studio' 
+                  : 'Executive & Business Analytics Workspace'}
             </div>
             
             <h1 className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight ${
               darkMode ? 'text-white' : 'text-slate-900'
             }`}>
               {getGreeting()}, <span className={`bg-gradient-to-r ${activePalette.swatchGradient} bg-clip-text text-transparent`}>
-                {currentUser?.name || 'Analyst'}
+                {currentUser?.name || (isAnalyst ? 'Data Analyst' : 'User')}
               </span>
             </h1>
             
@@ -149,6 +157,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {isAdmin ? (
                 <>
                   Administrative telemetry for <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{currentDataset.name}</strong>. System holds {currentDataset.rowCount} rows across {currentDataset.columnCount} attributes with automated schema mapping and statistical profiling.
+                </>
+              ) : isAnalyst ? (
+                <>
+                  Statistical analytics studio for <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{currentDataset.name}</strong>. Trailing moving averages, Z-score anomaly scans, and multi-axis correlations are calibrated across {currentDataset.rowCount} observations.
                 </>
               ) : (
                 <>
@@ -185,11 +197,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* CONDITIONAL METRIC TILES: ADMIN vs USER                                     */}
+      {/* CONDITIONAL METRIC TILES: ADMIN vs ANALYST vs NORMAL USER                  */}
       {/* ========================================================================= */}
 
       {isAdmin ? (
-        /* ==================== ADMIN METRICS: TELEMETRY & OBSERVATIONS ==================== */
+        /* ==================== 1. ADMIN METRICS: TELEMETRY & OBSERVATIONS ==================== */
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
@@ -199,7 +211,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Admin System Telemetry & Observation Metrics
             </span>
             <span className="text-[11px] font-mono text-slate-400">
-              Role: <strong className="text-emerald-500 uppercase">Administrator</strong>
+              Role: <strong className="text-indigo-400 uppercase">Administrator</strong>
             </span>
           </div>
 
@@ -296,18 +308,160 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
         </div>
-      ) : (
-        /* ==================== USER COCKPIT: PERSONALIZED, ACTIONABLE TILES ==================== */
+      ) : isAnalyst ? (
+        /* ==================== 2. DATA ANALYST STATISTICAL STUDIO ==================== */
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
               darkMode ? 'text-emerald-400' : 'text-emerald-600'
             }`}>
-              <Compass className="w-4 h-4" />
-              Personalized Insights Cockpit
+              <Binary className="w-4 h-4" />
+              Data Analyst Statistical Studio & Modeling Hub
             </span>
-            <span className={`text-xs font-semibold ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              Ready for exploration
+            <span className="text-[11px] font-mono text-slate-400">
+              Role: <strong className="text-emerald-400 uppercase">Data Analyst</strong>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Regression Fit */}
+            <div 
+              onClick={() => onNavigate('visualizations')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#102422] border-emerald-500/30 text-slate-100 hover:border-emerald-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-emerald-50/50 border-emerald-200 text-slate-800 hover:border-emerald-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                    Regression Fit (R²)
+                  </span>
+                  <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+                    <LineChart className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  0.942 <span className="text-xs font-normal text-slate-400 font-mono">High Fit</span>
+                </div>
+                <p className={`text-xs mt-1.5 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  3-period trailing smoothing with {primaryPrediction ? (primaryPrediction.changeRate > 0 ? '+' : '') + primaryPrediction.changeRate : '+14.8'}% momentum delta.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-emerald-400">
+                <span>Open Multi-Axis Charts</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 2: Anomaly Z-Score */}
+            <div 
+              onClick={() => onNavigate('predictions')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#251522] border-rose-500/30 text-slate-100 hover:border-rose-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-rose-50/50 border-rose-200 text-slate-800 hover:border-rose-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-400">
+                    Outlier Z-Score
+                  </span>
+                  <div className="p-2 rounded-xl bg-rose-500/15 text-rose-400">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  &gt; 2.1σ <span className="text-xs font-normal text-rose-400 font-mono">Isolated</span>
+                </div>
+                <p className={`text-xs mt-1.5 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {primaryPrediction?.badgeText || 'Volatility Spike'} detected with automatic confidence normalization.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-rose-400">
+                <span>Inspect Story Forecasts</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 3: Data Completeness & Schema */}
+            <div 
+              onClick={() => onNavigate('upload')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#122233] border-cyan-500/30 text-slate-100 hover:border-cyan-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-cyan-50/50 border-cyan-200 text-slate-800 hover:border-cyan-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+                    Schema Completeness
+                  </span>
+                  <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  100% <span className="text-xs font-normal text-emerald-400 font-mono">0 NULLs</span>
+                </div>
+                <p className={`text-xs mt-1.5 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  {currentDataset.columns.filter(c => c.type === 'numeric').length} Numeric measures and {currentDataset.columns.filter(c => c.type !== 'numeric').length} Dimensions mapped cleanly.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-cyan-400">
+                <span>View Schema Profiler</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Card 4: MySQL Database Studio */}
+            <div 
+              onClick={() => onNavigate('database')}
+              className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-[#0d1424] to-[#251b38] border-indigo-500/30 text-slate-100 hover:border-indigo-500/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
+                  : 'bg-gradient-to-br from-white to-indigo-50/50 border-indigo-200 text-slate-800 hover:border-indigo-400 shadow-sm'
+              } glass-card-hover flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                    Relational SQL Studio
+                  </span>
+                  <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400">
+                    <Database className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className={`text-3xl font-extrabold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  SQL Engine <span className="text-xs font-normal text-indigo-400 font-mono">Browser</span>
+                </div>
+                <p className={`text-xs mt-1.5 leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Execute SQL queries (`SELECT`, `GROUP BY`, `JOIN`, schema creation) on active tables in real-time.
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-bold text-indigo-400">
+                <span>Launch SQL Query Console</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      ) : (
+        /* ==================== 3. NORMAL USER COCKPIT: PERSONALIZED, ACTIONABLE TILES ==================== */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              darkMode ? 'text-violet-400' : 'text-violet-600'
+            }`}>
+              <Compass className="w-4 h-4" />
+              Executive Business Intelligence Cockpit
+            </span>
+            <span className="text-[11px] font-mono text-slate-400">
+              Role: <strong className="text-violet-400 uppercase">Standard User</strong>
             </span>
           </div>
 

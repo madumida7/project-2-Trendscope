@@ -38,11 +38,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentUser,
 }) => {
   const activePalette = getPalette(themePalette);
+  const userRole = currentUser?.role || 'user';
 
-  const navItems = [
+  const allNavItems = [
     {
       id: 'dashboard' as NavTab,
-      label: 'Executive Dashboard',
+      label: userRole === 'user' ? 'My Dashboard' : userRole === 'analyst' ? 'Analytics Studio' : 'Executive Dashboard',
       icon: LayoutDashboard,
       badge: null,
       description: 'KPIs, trend pulses & highlights',
@@ -73,8 +74,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'admin' as NavTab,
       label: 'Admin Control Hub',
       icon: ShieldAlert,
-      badge: currentUser?.role === 'admin' ? 'Super' : 'Portal',
+      badge: 'Super',
       description: 'Users, datasets, platform logs',
+      adminOnly: true,
     },
     {
       id: 'database' as NavTab,
@@ -83,8 +85,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: 'SQL Studio',
       badgeColor: darkMode ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-emerald-50 text-emerald-800 border border-emerald-200',
       description: 'Open source browser DB studio',
+      excludeForUser: true,
     },
   ];
+
+  const navItems = allNavItems.filter((item) => {
+    if (userRole === 'user') {
+      return !item.adminOnly && !item.excludeForUser;
+    }
+    if (userRole === 'analyst') {
+      return !item.adminOnly;
+    }
+    return true;
+  });
 
   return (
     <aside

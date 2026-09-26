@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { User, Dataset, ThemePalette } from './types';
+import { User, UserRole, Dataset, ThemePalette, AppNotification, PredictionGoal } from './types';
 import { SAMPLE_DATASETS } from './data/sampleDatasets';
 import { Navbar } from './components/Navbar';
 import { Sidebar, NavTab } from './components/Sidebar';
@@ -16,18 +16,17 @@ import { AdminView } from './views/AdminView';
 import { AuthView } from './views/AuthView';
 import { DatabaseStudioView } from './views/DatabaseStudioView';
 import { ExecutiveReportModal } from './components/ExecutiveReportModal';
+import { 
+  getSessionUser, 
+  setSessionUser, 
+  getStoredNotifications, 
+  saveStoredNotifications, 
+  addStoredNotification 
+} from './utils/userStorage';
 
 export default function App() {
-  // Pre-seed authenticated user so preview is immediately functional and alive
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    id: 'user-admin-1',
-    name: 'M. Janani',
-    email: '25mca029@grd.edu.in',
-    role: 'admin',
-    status: 'active',
-    createdAt: '2026-08-10',
-    lastLogin: 'Just now',
-  });
+  // Pre-seed authenticated user or load active session
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getSessionUser());
 
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [themePalette, setThemePalette] = useState<ThemePalette>('indigo');
@@ -46,6 +45,11 @@ export default function App() {
   const [currentDataset, setCurrentDataset] = useState<Dataset>(SAMPLE_DATASETS[0]);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // Live persistent notifications system
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => 
+    getStoredNotifications(SAMPLE_DATASETS[0].name)
+  );
 
   // Synchronize URL with active tab
   useEffect(() => {
@@ -75,6 +79,30 @@ export default function App() {
     setDatasets((prev) => [newDataset, ...prev.filter((d) => d.id !== newDataset.id)]);
     setCurrentDataset(newDataset);
     setActiveTab(targetTab);
+
+    // Trigger real-time intelligence notification
+    const updatedNotifs = addStoredNotification({
+      title: `Dataset Ingested: ${newDataset.name}`,
+      message: `Verified ${newDataset.rowCount} rows & ${newDataset.columnCount} columns. Moving averages and predictions updated.`,
+      type: 'dataset',
+      read: false,
+      targetTab,
+    });
+    setNotifications(updatedNotifs);
+  };
+
+  const handleUpdateDatasetGoal = (goal: PredictionGoal) => {
+    const updated: Dataset = { ...currentDataset, predictionGoal: goal };
+    setCurrentDataset(updated);
+    setDatasets((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
+    const notifs = addStoredNotification({
+      title: `Goals Tailored: ${updated.name}`,
+      message: `Prediction engine calibrated for metric "${goal.primaryTargetMetric || 'primary series'}" with objective "${goal.businessObjective}".`,
+      type: 'prediction',
+      read: false,
+      targetTab: 'predictions',
+    });
+    setNotifications(notifs);
   };
 
   const handleDeleteDataset = (id: string) => {
@@ -85,6 +113,55 @@ export default function App() {
     }
   };
 
+  const handleSwitchRole = (newRole: UserRole) => {
+    if (!currentUser) return;
+    const updatedUser = { ...currentUser, role: newRole };
+    setCurrentUser(updatedUser);
+    setSessionUser(updatedUser);
+
+    const updatedNotifs = addStoredNotification({
+      title: `Role Switched to ${newRole === 'admin' ? 'Administrator' : newRole === 'analyst' ? 'Data Analyst' : 'Standard User'}`,
+      message: `Workspace view, telemetry, and capabilities updated for ${newRole.toUpperCase()} mode.`,
+      type: 'user',
+      read: false,
+      targetTab: 'dashboard',
+    });
+    setNotifications(updatedNotifs);
+  };
+
+  const handleNotificationClick = (notif: AppNotification) => {
+    const updated = notifications.map((n) => (n.id === notif.id ? { ...n, read: true } : n));
+    setNotifications(updated);
+    saveStoredNotifications(updated);
+    if (notif.targetTab) {
+      setActiveTab(notif.targetTab);
+    }
+  };
+
+  const handleMarkAllNotificationsRead = () => {
+    const updated = notifications.map((n) => ({ ...n, read: true }));
+    setNotifications(updated);
+    saveStoredNotifications(updated);
+  };
+
+  const handleClearNotifications = () => {
+    setNotifications([]);
+    saveStoredNotifications([]);
+  };
+
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    setSessionUser(user);
+    const updatedNotifs = addStoredNotification({
+      title: `Welcome, ${user.name}!`,
+      message: `Signed in as ${user.role.toUpperCase()} with active access to ${currentDataset.name}.`,
+      type: 'user',
+      read: false,
+      targetTab: 'dashboard',
+    });
+    setNotifications(updatedNotifs);
+  };
+
   // If user signs out, show the elegant split-screen AuthView with theme switcher
   if (!currentUser) {
     return (
@@ -93,7 +170,7 @@ export default function App() {
         onToggleDarkMode={() => setDarkMode(!darkMode)}
         themePalette={themePalette}
         onChangeThemePalette={setThemePalette}
-        onLoginSuccess={(user) => setCurrentUser(user)}
+        onLoginSuccess={handleLoginSuccess}
       />
     );
   }
@@ -110,14 +187,32 @@ export default function App() {
         themePalette={themePalette}
         setThemePalette={setThemePalette}
         currentUser={currentUser}
-        onLogout={() => setCurrentUser(null)}
+        onLogout={() => {
+          setSessionUser(null);
+          setCurrentUser(null);
+        }}
         datasets={datasets}
         currentDataset={currentDataset}
-        onSelectDataset={(ds) => setCurrentDataset(ds)}
+        onSelectDataset={(ds) => {
+          setCurrentDataset(ds);
+          const updatedNotifs = addStoredNotification({
+            title: `Active Dataset: ${ds.name}`,
+            message: `Loaded ${ds.rowCount} observations. Models recalibrated.`,
+            type: 'dataset',
+            read: false,
+            targetTab: activeTab,
+          });
+          setNotifications(updatedNotifs);
+        }}
         onOpenReportModal={() => setIsReportModalOpen(true)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         activeTab={activeTab}
+        notifications={notifications}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
+        onClearNotifications={handleClearNotifications}
+        onSwitchRole={handleSwitchRole}
       />
 
       {/* Main Workspace Frame: Sidebar + Active View */}
@@ -166,6 +261,8 @@ export default function App() {
               darkMode={darkMode}
               themePalette={themePalette}
               onOpenReportModal={() => setIsReportModalOpen(true)}
+              onUpdateDatasetGoal={handleUpdateDatasetGoal}
+              onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
@@ -177,6 +274,8 @@ export default function App() {
               darkMode={darkMode}
               themePalette={themePalette}
               onOpenReportModal={() => setIsReportModalOpen(true)}
+              onUpdateDatasetGoal={handleUpdateDatasetGoal}
+              onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 

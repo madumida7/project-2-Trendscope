@@ -10,13 +10,16 @@ import {
   ArrowRight, 
   Search,
   BrainCircuit,
-  BarChart3
+  BarChart3,
+  Target,
+  Sliders
 } from 'lucide-react';
-import { ColumnProfile, Dataset, ThemePalette } from '../types';
-import { profileColumns, detectDatasetDomain } from '../utils/dataAnalyzer';
+import { ColumnProfile, Dataset, ThemePalette, PredictionGoal, SectorType } from '../types';
+import { profileColumns, detectDatasetDomain, SECTOR_DEFINITIONS } from '../utils/dataAnalyzer';
 import { SAMPLE_DATASETS } from '../data/sampleDatasets';
 import { getPalette } from '../utils/themeConfig';
 import { NavTab } from '../components/Sidebar';
+import { PredictionIntentModal } from '../components/PredictionIntentModal';
 
 interface UploadViewProps {
   onDatasetLoaded: (dataset: Dataset, targetTab?: NavTab) => void;
@@ -43,10 +46,14 @@ export const UploadView: React.FC<UploadViewProps> = ({
   const [pastedCSV, setPastedCSV] = useState('');
   const [parsedRows, setParsedRows] = useState<Record<string, any>[] | null>(null);
   const [detectedColumns, setDetectedColumns] = useState<ColumnProfile[]>([]);
-  const [detectedDomain, setDetectedDomain] = useState<'student' | 'hospital' | 'business' | 'saas' | 'general'>('general');
+  const [detectedDomain, setDetectedDomain] = useState<SectorType>('general');
   const [searchFilter, setSearchFilter] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Prediction Intent state
+  const [pendingGoal, setPendingGoal] = useState<PredictionGoal | null>(null);
+  const [showIntentModal, setShowIntentModal] = useState<boolean>(false);
 
   // Parse CSV text into array of row objects
   const parseCSVText = (csvString: string) => {
@@ -146,6 +153,8 @@ export const UploadView: React.FC<UploadViewProps> = ({
     setParsedRows(rows);
     setDatasetName(defaultName);
     setDatasetDesc(`Ingested ${rows.length} records across ${profiles.length} attributes.`);
+    // Automatically bring up the tailored prediction questions screen!
+    setShowIntentModal(true);
   };
 
   const handleLoadSample = (sample: Dataset) => {
@@ -154,8 +163,10 @@ export const UploadView: React.FC<UploadViewProps> = ({
     setTimeout(() => setUploadSuccess(false), 3000);
   };
 
-  const handleCommitDataset = (targetTab: NavTab = 'predictions') => {
+  const handleCommitDataset = (targetTab: NavTab = 'predictions', overrideGoal?: PredictionGoal) => {
     if (!parsedRows || parsedRows.length === 0) return;
+
+    const goalToUse = overrideGoal || pendingGoal || undefined;
 
     const newDataset: Dataset = {
       id: `custom_${Date.now()}`,
@@ -169,6 +180,7 @@ export const UploadView: React.FC<UploadViewProps> = ({
       uploadedAt: new Date().toLocaleString(),
       uploadedBy: 'Current Analyst',
       tags: [detectedDomain.toUpperCase(), 'Custom Upload'],
+      predictionGoal: goalToUse,
     };
 
     onDatasetLoaded(newDataset, targetTab);
@@ -341,23 +353,46 @@ export const UploadView: React.FC<UploadViewProps> = ({
                     </div>
                   </div>
 
-                  <div className={`pt-3 border-t flex items-center justify-between ${
+                  <div className={`pt-3 border-t flex flex-wrap items-center justify-between gap-2 ${
                     darkMode ? 'border-slate-800' : 'border-slate-200'
                   }`}>
                     <span className={`text-[11px] ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                       Owner: {sample.uploadedBy}
                     </span>
-                    <button
-                      onClick={() => onSelectDataset ? onSelectDataset(sample) : handleLoadSample(sample)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        isActive
-                          ? 'bg-emerald-600 text-white shadow-md cursor-default'
-                          : `bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} hover:scale-[1.02] active:scale-[0.98]`
-                      }`}
-                    >
-                      <span>{isActive ? 'Active in Workspace' : 'Switch to this Dataset'}</span>
-                      {!isActive && <ArrowRight className="w-3.5 h-3.5" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDetectedColumns(sample.columns);
+                          setDetectedDomain(sample.category);
+                          setParsedRows(sample.data);
+                          setDatasetName(sample.name);
+                          setDatasetDesc(sample.description);
+                          setPendingGoal(sample.predictionGoal || null);
+                          setShowIntentModal(true);
+                        }}
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border ${
+                          darkMode ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                        }`}
+                        title="Ask specific prediction questions and customize goals for this benchmark"
+                      >
+                        <Target className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Tailor Questions</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectDataset ? onSelectDataset(sample) : handleLoadSample(sample)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isActive
+                            ? 'bg-emerald-600 text-white shadow-md cursor-default'
+                            : `bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} hover:scale-[1.02] active:scale-[0.98]`
+                        }`}
+                      >
+                        <span>{isActive ? 'Active in Workspace' : 'Switch to this Dataset'}</span>
+                        {!isActive && <ArrowRight className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -472,20 +507,20 @@ export const UploadView: React.FC<UploadViewProps> = ({
               : 'bg-white/95 border-indigo-200 shadow-sm'
           }`}>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold ${
                 darkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
               }`}>
-                🧠
+                {SECTOR_DEFINITIONS[detectedDomain]?.icon || '🧠'}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                    Inferred Domain Context:
+                    Detected Sector:
                   </span>
                   <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase border ${
                     darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight
                   }`}>
-                    {detectedDomain}
+                    {SECTOR_DEFINITIONS[detectedDomain]?.name || detectedDomain}
                   </span>
                 </div>
                 <p className={`text-xs mt-0.5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -526,6 +561,62 @@ export const UploadView: React.FC<UploadViewProps> = ({
                 <span>Dashboard</span>
               </button>
             </div>
+          </div>
+
+          {/* Tailored Prediction Intent Banner */}
+          <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+            pendingGoal
+              ? darkMode 
+                ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-200' 
+                : 'bg-indigo-50 border-indigo-200 text-indigo-900 shadow-sm'
+              : darkMode 
+                ? 'bg-slate-900/80 border-slate-800 text-slate-300' 
+                : 'bg-slate-100 border-slate-200 text-slate-700'
+          }`}>
+            <div className="flex items-start sm:items-center gap-3">
+              <div className={`p-2.5 rounded-xl shrink-0 ${
+                pendingGoal 
+                  ? 'bg-indigo-500/20 text-indigo-400' 
+                  : darkMode ? 'bg-slate-800 text-slate-400' : 'bg-white text-slate-600 shadow-xs'
+              }`}>
+                <Target className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                    {pendingGoal ? 'Tailored Prediction Intent Configured' : 'Prediction Intent Setup'}
+                  </span>
+                  {pendingGoal && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold uppercase">
+                      Customized
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs mt-0.5 font-medium leading-relaxed">
+                  {pendingGoal ? (
+                    <>
+                      Objective: <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{pendingGoal.businessObjective}</strong> • Primary Target: <span className="underline font-bold">{pendingGoal.primaryTargetMetric || 'Auto-detected'}</span> • Horizon: <strong className={darkMode ? 'text-white' : 'text-slate-900'}>{pendingGoal.predictionHorizon.replace('_', ' ')}</strong>
+                      {pendingGoal.customQuestion && (
+                        <span className="italic block text-[11px] mt-0.5 opacity-90">"{pendingGoal.customQuestion}"</span>
+                      )}
+                    </>
+                  ) : (
+                    'Configure specific target metrics, decision posture, and business questions to customize your storytelling predictions and chart perspectives.'
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowIntentModal(true)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                pendingGoal
+                  ? darkMode ? 'bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 border border-indigo-500/40' : 'bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-300 shadow-sm'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md'
+              }`}
+            >
+              {pendingGoal ? 'Edit Prediction Goals' : 'Customize Goals & Questions'}
+            </button>
           </div>
 
           {/* Column Profiling Cards */}
@@ -649,6 +740,24 @@ export const UploadView: React.FC<UploadViewProps> = ({
 
         </div>
       )}
+
+      {/* Prediction Intent & Questions Screen Modal */}
+      <PredictionIntentModal
+        isOpen={showIntentModal}
+        onClose={() => setShowIntentModal(false)}
+        datasetName={datasetName || 'Custom Ingested Dataset'}
+        category={detectedDomain}
+        columns={detectedColumns}
+        initialGoal={pendingGoal || undefined}
+        onApplyGoal={(goal) => {
+          setPendingGoal(goal);
+          // Commit immediately with the customized predictions & target visual perspective
+          const targetTab = goal.recommendedChartType ? 'visualizations' : 'predictions';
+          handleCommitDataset(targetTab, goal);
+        }}
+        darkMode={darkMode}
+        themePalette={themePalette}
+      />
 
     </div>
   );

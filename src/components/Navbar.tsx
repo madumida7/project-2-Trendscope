@@ -14,7 +14,7 @@ import {
   Check,
   ExternalLink
 } from 'lucide-react';
-import { Dataset, User, ThemePalette } from '../types';
+import { Dataset, User, UserRole, ThemePalette, AppNotification } from '../types';
 import { THEME_PALETTES, getPalette } from '../utils/themeConfig';
 import { NavTab } from './Sidebar';
 
@@ -32,6 +32,11 @@ interface NavbarProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   activeTab?: NavTab;
+  notifications?: AppNotification[];
+  onNotificationClick?: (notif: AppNotification) => void;
+  onMarkAllNotificationsRead?: () => void;
+  onClearNotifications?: () => void;
+  onSwitchRole?: (newRole: UserRole) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -48,6 +53,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   searchTerm,
   setSearchTerm,
   activeTab = 'dashboard',
+  notifications = [],
+  onNotificationClick,
+  onMarkAllNotificationsRead,
+  onClearNotifications,
+  onSwitchRole,
 }) => {
   const [showDatasetDropdown, setShowDatasetDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -166,37 +176,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Right Tools: Export, Palette Customizer, Light/Dark Switcher, Profile */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           
-          {/* Direct Link to MySQL Database Studio */}
-          <a
-            id="nav-db-studio-link"
-            href="/database"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-              darkMode
-                ? 'bg-indigo-950/40 border-indigo-800/60 hover:bg-indigo-900/50 text-indigo-300'
-                : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100 text-indigo-700'
-            }`}
-            title="Open MySQL Database Studio Individually in Browser"
-          >
-            <Database className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="hidden lg:inline">SQL Studio</span>
-            <ExternalLink className="w-3 h-3 opacity-70" />
-          </a>
-
-          {/* Export Report - Only available in Predictions & Visualizations views */}
-          {(activeTab === 'predictions' || activeTab === 'visualizations') && (
-            <button
-              id="export-report-btn"
-              onClick={onOpenReportModal}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r ${activePalette.accentGradient} text-white shadow-md ${activePalette.glowShadow} transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
-              title="Export printable executive report"
+          {/* Direct Link to MySQL Database Studio (Admin & Analyst only) */}
+          {currentUser?.role !== 'user' && (
+            <a
+              id="nav-db-studio-link"
+              href="/database"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                darkMode
+                  ? 'bg-indigo-950/40 border-indigo-800/60 hover:bg-indigo-900/50 text-indigo-300'
+                  : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100 text-indigo-700'
+              }`}
+              title="Open MySQL Database Studio Individually in Browser"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">
-                {activeTab === 'predictions' ? 'Export Predictions' : 'Export Visual Report'}
-              </span>
-            </button>
+              <Database className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden lg:inline">SQL Studio</span>
+              <ExternalLink className="w-3 h-3 opacity-70" />
+            </a>
           )}
 
           {/* Palette Customizer Menu Button */}
@@ -311,42 +308,107 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
                   : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
               }`}
+              title="Workspace Intelligence Alerts"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-slate-950" />
+              {(notifications && notifications.filter(n => !n.read).length > 0) && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shadow-md animate-pulse">
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
             </button>
 
             {showNotifications && (
               <div 
-                className={`absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl border p-3 z-50 animate-in fade-in duration-150 ${
+                className={`absolute right-0 mt-2 w-84 sm:w-96 rounded-2xl shadow-2xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
                   darkMode ? 'bg-slate-900/95 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'
                 }`}
               >
                 <div className={`flex items-center justify-between pb-2 border-b ${
                   darkMode ? 'border-slate-800' : 'border-slate-100'
                 }`}>
-                  <span className="font-bold text-xs">Intelligence Alerts</span>
-                  <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-semibold">3 New</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs">Intelligence Alerts</span>
+                    {(notifications && notifications.filter(n => !n.read).length > 0) ? (
+                      <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-bold">
+                        {notifications.filter(n => !n.read).length} New
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">
+                        Caught Up
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {onMarkAllNotificationsRead && notifications && notifications.some(n => !n.read) && (
+                      <button
+                        onClick={onMarkAllNotificationsRead}
+                        className="text-[10px] text-indigo-400 hover:underline font-semibold cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    {onClearNotifications && notifications && notifications.length > 0 && (
+                      <button
+                        onClick={onClearNotifications}
+                        className="text-[10px] text-slate-400 hover:text-slate-200 font-semibold cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-2 space-y-2 text-xs">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                    <div className="font-bold text-[11px]">Consistent Growth Pattern</div>
-                    <div className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Moving average confirms +14.5% trajectory.</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                    <div className="font-bold text-[11px]">Cyclical Dip Detected</div>
-                    <div className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Day-of-week sensitivity detected for Monday sessions.</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                    <div className="font-bold text-[11px]">Dataset Auto-Profiled</div>
-                    <div className={`text-[10px] ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Successfully extracted column types & statistical boundaries.</div>
-                  </div>
+
+                <div className="mt-2 space-y-2 max-h-80 overflow-y-auto pr-1">
+                  {(!notifications || notifications.length === 0) ? (
+                    <div className="py-8 text-center text-xs text-slate-400">
+                      🎉 All caught up! No active notifications.
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => {
+                          if (onNotificationClick) {
+                            onNotificationClick(notif);
+                            setShowNotifications(false);
+                          }
+                        }}
+                        className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer flex items-start gap-2.5 ${
+                          !notif.read
+                            ? darkMode
+                              ? 'bg-indigo-950/30 border-indigo-500/40 text-slate-100 hover:border-indigo-400'
+                              : 'bg-indigo-50/70 border-indigo-200 text-slate-900 hover:border-indigo-300'
+                            : darkMode
+                              ? 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
+                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                          !notif.read ? 'bg-indigo-500 ring-2 ring-indigo-400/30' : 'bg-slate-600'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-[11px] truncate">{notif.title}</span>
+                            <span className="text-[9px] text-slate-400 shrink-0">{notif.timestamp}</span>
+                          </div>
+                          <p className="text-[10px] mt-0.5 leading-relaxed line-clamp-2">{notif.message}</p>
+                          {notif.targetTab && (
+                            <span className="text-[9px] font-bold text-indigo-400 mt-1 inline-flex items-center gap-1 hover:underline">
+                              Open View →
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* User Account Menu */}
+          {/* User Account Menu with Role Switcher */}
           {currentUser && (
             <div className="relative">
               <button
@@ -370,7 +432,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {currentUser.name}
                   </div>
                   <div className={`text-[10px] uppercase font-bold tracking-wider mt-0.5 ${darkMode ? activePalette.textAccentDark : activePalette.textAccentLight}`}>
-                    {currentUser.role}
+                    {currentUser.role === 'admin' ? '👑 Admin' : currentUser.role === 'analyst' ? '🔬 Analyst' : '👤 User'}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 opacity-50 shrink-0" />
@@ -378,20 +440,87 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {showUserDropdown && (
                 <div 
-                  className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl border p-2 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                  className={`absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl border p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
                     darkMode ? 'bg-slate-900/95 border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-800'
                   }`}
                 >
                   <div className={`px-3 py-2 border-b ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
                     <div className="font-bold text-xs">{currentUser.name}</div>
                     <div className={`text-[11px] truncate ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{currentUser.email}</div>
-                    <div className="mt-1.5">
+                    <div className="mt-1.5 flex items-center justify-between">
                       <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full border ${darkMode ? activePalette.badgeClassDark : activePalette.badgeClassLight}`}>
-                        {currentUser.role} Role
+                        {currentUser.role.toUpperCase()} ROLE
                       </span>
+                      <span className="text-[10px] text-emerald-400 font-semibold">● Active</span>
                     </div>
                   </div>
-                  <div className="py-1">
+
+                  {/* Instant Role Preview Switcher */}
+                  <div className={`py-2 border-b ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pb-1.5">
+                      Switch Role Mode:
+                    </div>
+                    <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onSwitchRole) onSwitchRole('admin');
+                          setShowUserDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                          currentUser.role === 'admin'
+                            ? 'bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/40'
+                            : 'hover:bg-slate-500/10 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>👑</span>
+                          <span>Administrator</span>
+                        </div>
+                        {currentUser.role === 'admin' && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onSwitchRole) onSwitchRole('analyst');
+                          setShowUserDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                          currentUser.role === 'analyst'
+                            ? 'bg-emerald-600/20 text-emerald-300 font-bold border border-emerald-500/40'
+                            : 'hover:bg-slate-500/10 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>🔬</span>
+                          <span>Data Analyst</span>
+                        </div>
+                        {currentUser.role === 'analyst' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onSwitchRole) onSwitchRole('user');
+                          setShowUserDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                          currentUser.role === 'user'
+                            ? 'bg-violet-600/20 text-violet-300 font-bold border border-violet-500/40'
+                            : 'hover:bg-slate-500/10 text-slate-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>👤</span>
+                          <span>Standard User</span>
+                        </div>
+                        {currentUser.role === 'user' && <Check className="w-3.5 h-3.5 text-violet-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-1">
                     <button
                       onClick={() => {
                         setShowUserDropdown(false);
@@ -400,7 +529,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2 text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer font-medium"
                     >
                       <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out / Switch User</span>
+                      <span>Sign Out / Change Account</span>
                     </button>
                   </div>
                 </div>

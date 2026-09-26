@@ -24,11 +24,30 @@ export interface ColumnProfile {
   mean?: number;
 }
 
+export interface PredictionGoal {
+  primaryTargetMetric?: string;
+  businessObjective: string;
+  predictionHorizon: 'next_month' | 'next_quarter' | 'six_months' | 'one_year';
+  decisionPriority: 'high_accuracy' | 'aggressive_growth' | 'conservative_defense' | 'balanced';
+  customQuestion?: string;
+  recommendedChartType?: ChartType;
+}
+
+export type SectorType = 
+  | 'hospital' 
+  | 'student' 
+  | 'business' 
+  | 'saas' 
+  | 'finance' 
+  | 'hr' 
+  | 'supply_chain' 
+  | 'general';
+
 export interface Dataset {
   id: string;
   name: string;
   description: string;
-  category: 'student' | 'hospital' | 'business' | 'saas' | 'general';
+  category: SectorType;
   rowCount: number;
   columnCount: number;
   columns: ColumnProfile[];
@@ -36,6 +55,7 @@ export interface Dataset {
   uploadedAt: string;
   uploadedBy: string;
   tags: string[];
+  predictionGoal?: PredictionGoal;
 }
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'donut';
@@ -101,3 +121,13 @@ export interface AdminStats {
 }
 
 export type ThemePalette = 'indigo' | 'emerald' | 'sunset' | 'azure' | 'luxe';
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  type: 'prediction' | 'anomaly' | 'dataset' | 'system' | 'user';
+  read: boolean;
+  targetTab?: 'dashboard' | 'upload' | 'visualizations' | 'predictions' | 'admin' | 'database';
+}
