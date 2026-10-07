@@ -62,18 +62,18 @@ export default function App() {
     }
   }, [activeTab]);
 
-  // Synchronize document dark mode class
+  // Synchronize document dark mode class and atmospheric palette
   useEffect(() => {
+    document.body.className = '';
+    const paletteClass = `palette-${themePalette}`;
     if (darkMode) {
       document.documentElement.classList.add('dark');
-      document.body.classList.remove('bg-slate-50', 'text-slate-800');
-      document.body.classList.add('bg-slate-950', 'text-slate-100');
+      document.body.classList.add('canvas-ambient-dark', paletteClass, 'bg-[#060913]', 'text-slate-100');
     } else {
       document.documentElement.classList.remove('dark');
-      document.body.classList.remove('bg-slate-950', 'text-slate-100');
-      document.body.classList.add('bg-slate-50', 'text-slate-800');
+      document.body.classList.add('canvas-ambient-light', paletteClass, 'bg-[#f0f4fa]', 'text-slate-800');
     }
-  }, [darkMode]);
+  }, [darkMode, themePalette]);
 
   const handleDatasetLoaded = (newDataset: Dataset, targetTab: NavTab = 'predictions') => {
     setDatasets((prev) => [newDataset, ...prev.filter((d) => d.id !== newDataset.id)]);
@@ -176,8 +176,10 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${
-      darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-800'
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 palette-${themePalette} ${
+      darkMode 
+        ? 'canvas-ambient-dark text-slate-100' 
+        : 'canvas-ambient-light text-slate-800'
     }`}>
       
       {/* Top Navigation */}

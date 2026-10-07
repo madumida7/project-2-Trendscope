@@ -25,15 +25,24 @@
 }
 
 .canvas-ambient-light {
-  background-color: #f8fafc;
+  background-color: #f0f4fa;
   background-image: 
-    radial-gradient(at 10% 5%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
-    radial-gradient(at 90% 15%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
-    radial-gradient(at 50% 90%, rgba(244, 63, 94, 0.03) 0px, transparent 60%);
+    radial-gradient(at 10% 8%, rgba(99, 102, 241, 0.12) 0px, transparent 55%),
+    radial-gradient(at 90% 12%, rgba(14, 165, 233, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 90%, rgba(236, 72, 153, 0.07) 0px, transparent 60%),
+    radial-gradient(at 75% 75%, rgba(16, 185, 129, 0.08) 0px, transparent 55%);
   background-attachment: fixed;
 }
 
 /* Palette-specific Ambient Modifiers */
+.palette-indigo.canvas-ambient-light {
+  background-color: #f1f4fb;
+  background-image: 
+    radial-gradient(at 12% 8%, rgba(99, 102, 241, 0.15) 0px, transparent 55%),
+    radial-gradient(at 88% 15%, rgba(168, 85, 247, 0.11) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(6, 182, 212, 0.09) 0px, transparent 60%);
+}
+
 .palette-emerald.canvas-ambient-dark {
   background-image: 
     radial-gradient(at 15% 10%, rgba(16, 185, 129, 0.14) 0px, transparent 55%),
@@ -42,9 +51,11 @@
 }
 
 .palette-emerald.canvas-ambient-light {
+  background-color: #eff8f4;
   background-image: 
-    radial-gradient(at 10% 5%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
-    radial-gradient(at 90% 15%, rgba(20, 184, 166, 0.05) 0px, transparent 50%);
+    radial-gradient(at 12% 8%, rgba(16, 185, 129, 0.16) 0px, transparent 55%),
+    radial-gradient(at 88% 15%, rgba(20, 184, 166, 0.12) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(6, 182, 212, 0.09) 0px, transparent 60%);
 }
 
 .palette-sunset.canvas-ambient-dark {
@@ -55,9 +66,11 @@
 }
 
 .palette-sunset.canvas-ambient-light {
+  background-color: #fdf5f0;
   background-image: 
-    radial-gradient(at 10% 5%, rgba(245, 158, 11, 0.07) 0px, transparent 50%),
-    radial-gradient(at 90% 15%, rgba(244, 63, 94, 0.06) 0px, transparent 50%);
+    radial-gradient(at 12% 8%, rgba(245, 158, 11, 0.16) 0px, transparent 55%),
+    radial-gradient(at 88% 15%, rgba(244, 63, 94, 0.13) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(168, 85, 247, 0.09) 0px, transparent 60%);
 }
 
 .palette-azure.canvas-ambient-dark {
@@ -67,9 +80,11 @@
 }
 
 .palette-azure.canvas-ambient-light {
+  background-color: #eff6fc;
   background-image: 
-    radial-gradient(at 10% 5%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
-    radial-gradient(at 90% 15%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+    radial-gradient(at 12% 8%, rgba(14, 165, 233, 0.17) 0px, transparent 55%),
+    radial-gradient(at 88% 15%, rgba(59, 130, 246, 0.13) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(99, 102, 241, 0.08) 0px, transparent 60%);
 }
 
 .palette-luxe.canvas-ambient-dark {
@@ -79,9 +94,11 @@
 }
 
 .palette-luxe.canvas-ambient-light {
+  background-color: #f7f5f0;
   background-image: 
-    radial-gradient(at 10% 5%, rgba(245, 208, 115, 0.06) 0px, transparent 50%),
-    radial-gradient(at 90% 15%, rgba(100, 116, 139, 0.04) 0px, transparent 50%);
+    radial-gradient(at 12% 8%, rgba(217, 119, 6, 0.13) 0px, transparent 55%),
+    radial-gradient(at 88% 15%, rgba(148, 163, 184, 0.14) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(245, 208, 115, 0.10) 0px, transparent 60%);
 }
 
 /* Custom modern scrollbars */
@@ -113,11 +130,19 @@
 }
 
 .glass-panel-light {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+}
+
+.luminous-card-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 248, 255, 0.82) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(219, 228, 245, 0.9);
+  box-shadow: 0 8px 24px -6px rgba(99, 102, 241, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
 .glass-card-hover {
@@ -133,7 +158,7 @@
 }
 
 html:not(.dark) .glass-card-hover:hover {
-  box-shadow: 0 16px 36px -8px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 16px 36px -8px rgba(99, 102, 241, 0.14), 0 0 0 1px rgba(99, 102, 241, 0.25);
 }
 
 /* Elegant Text Glow for Key Highlights in Dark Mode */
